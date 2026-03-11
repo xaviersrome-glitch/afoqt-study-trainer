@@ -1,0 +1,1 @@
+# afoqt-study-trainer
