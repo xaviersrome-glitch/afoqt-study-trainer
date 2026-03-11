@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFOQT Study Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --air: #0a0f1e;
+    --wing: #1a2340;
+    --steel: #243060;
+    --gold: #f5c842;
+    --gold2: #e8a820;
+    --sky: #5bc4f5;
+    --white: #f0f4ff;
+    --muted: #8090b0;
+    --green: #4ade80;
+    --red: #f87171;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--air);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(91,196,245,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 30% at 80% 100%, rgba(245,200,66,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* Header */
+  header { text-align: center; margin-bottom: 40px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(245,200,66,0.12); border: 1px solid rgba(245,200,66,0.3);
+    border-radius: 40px; padding: 6px 18px; font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 16px;
+  }
+  .badge::before { content: '✈'; font-size: 14px; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px,8vw,72px); letter-spacing: 3px; color: var(--white); line-height: 1; }
+  h1 span { color: var(--gold); }
+  .subtitle { color: var(--muted); font-size: 14px; margin-top: 10px; }
+
+  /* Score strip */
+  .score-strip {
+    display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;
+  }
+  .score-card {
+    flex: 1; min-width: 100px;
+    background: var(--wing); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius); padding: 14px 18px;
+  }
+  .score-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 4px; }
+  .score-card .val { font-family: 'DM Mono', monospace; font-size: 24px; color: var(--gold); font-weight: 500; }
+
+  /* Tab nav */
+  .tabs { display: flex; gap: 6px; margin-bottom: 24px; background: var(--wing); border-radius: 10px; padding: 5px; }
+  .tab {
+    flex: 1; padding: 10px; border: none; background: transparent;
+    color: var(--muted); border-radius: 8px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    transition: all .2s; letter-spacing: .5px;
+  }
+  .tab.active { background: var(--gold); color: var(--air); font-weight: 600; }
+  .tab:not(.active):hover { color: var(--white); background: rgba(255,255,255,0.06); }
+
+  /* Difficulty row */
+  .diff-row { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+  .diff-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-right: 4px; }
+  .diff-btn {
+    padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+    background: transparent; color: var(--muted); cursor: pointer; font-size: 12px;
+    font-family: 'DM Sans', sans-serif; transition: all .2s;
+  }
+  .diff-btn.active { border-color: var(--sky); color: var(--sky); background: rgba(91,196,245,0.1); }
+
+  /* Question card */
+  .q-card {
+    background: var(--wing);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    transition: border-color .3s;
+    min-height: 180px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .q-card.correct { border-color: var(--green); }
+  .q-card.wrong { border-color: var(--red); }
+
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .q-type { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--sky); font-weight: 600; }
+  .q-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .q-text {
+    font-size: 18px; line-height: 1.6; color: var(--white); margin-bottom: 24px; font-weight: 400;
+  }
+  .q-text strong { color: var(--gold); }
+
+  /* Options */
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width: 560px) { .options { grid-template-columns: 1fr; } }
+
+  .opt-btn {
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: var(--white);
+    text-align: left;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    transition: all .2s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(245,200,66,0.08); }
+  .opt-btn:disabled { cursor: default; }
+  .opt-btn.selected-correct { border-color: var(--green); background: rgba(74,222,128,0.12); color: var(--green); }
+  .opt-btn.selected-wrong { border-color: var(--red); background: rgba(248,113,113,0.12); color: var(--red); }
+  .opt-btn.reveal-correct { border-color: var(--green); background: rgba(74,222,128,0.08); color: var(--green); }
+  .opt-letter {
+    font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500;
+    min-width: 22px; height: 22px; border-radius: 6px;
+    background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+  }
+
+  /* Feedback */
+  .feedback {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-top: 16px;
+    font-size: 14px; line-height: 1.6;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); color: var(--green); }
+  .feedback.wrong { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); color: #fca5a5; }
+  .feedback-title { font-weight: 600; margin-bottom: 4px; font-size: 15px; }
+
+  /* Actions */
+  .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn {
+    padding: 12px 28px; border-radius: 10px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    transition: all .2s; letter-spacing: .3px;
+  }
+  .btn-primary { background: var(--gold); color: var(--air); }
+  .btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+  .btn-secondary { background: rgba(255,255,255,0.08); color: var(--white); border: 1px solid rgba(255,255,255,0.15); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.14); }
+
+  /* Progress bar */
+  .prog-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 4px; height: 4px; margin-bottom: 28px; }
+  .prog-bar { background: var(--gold); height: 4px; border-radius: 4px; transition: width .4s ease; }
+
+  /* Tip box */
+  .tip-box {
+    background: rgba(91,196,245,0.07); border: 1px solid rgba(91,196,245,0.2);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+    font-size: 13px; color: #a0d8f0; line-height: 1.5;
+  }
+  .tip-box strong { color: var(--sky); }
+
+  /* Loading spinner */
+  .loading { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .spinner {
+    width: 36px; height: 36px; border: 3px solid rgba(245,200,66,0.2);
+    border-top-color: var(--gold); border-radius: 50%;
+    animation: spin .8s linear infinite; margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none; }
+
+  /* Results */
+  .results-card {
+    text-align: center; background: var(--wing);
+    border-radius: 20px; padding: 48px 32px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .results-icon { font-size: 56px; margin-bottom: 16px; }
+  .results-score { font-family: 'Bebas Neue', sans-serif; font-size: 80px; color: var(--gold); line-height: 1; }
+  .results-label { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .results-msg { font-size: 16px; line-height: 1.6; color: var(--white); max-width: 400px; margin: 0 auto 32px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge">AFOQT Prep</div>
+    <h1>FLY <span>SMARTER</span></h1>
+    <p class="subtitle">AI-powered Math &amp; Verbal trainer · Built for the AFOQT</p>
+  </header>
+
+  <div class="score-strip">
+    <div class="score-card"><div class="label">Session Score</div><div class="val" id="scoreVal">—</div></div>
+    <div class="score-card"><div class="label">Streak 🔥</div><div class="val" id="streakVal">0</div></div>
+    <div class="score-card"><div class="label">Questions Done</div><div class="val" id="doneVal">0</div></div>
+    <div class="score-card"><div class="label">Category</div><div class="val" id="catVal" style="font-size:14px;margin-top:4px;">—</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('math')">📐 Math</button>
+    <button class="tab" onclick="setMode('verbal')">📖 Verbal</button>
+    <button class="tab" onclick="setMode('mixed')">⚡ Mixed</button>
+  </div>
+
+  <div class="diff-row">
+    <span class="diff-label">Level:</span>
+    <button class="diff-btn active" onclick="setDiff('easy')">Easy</button>
+    <button class="diff-btn" onclick="setDiff('medium')">Medium</button>
+    <button class="diff-btn" onclick="setDiff('hard')">Hard</button>
+  </div>
+
+  <div class="prog-bar-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
+
+  <div id="tipBox" class="tip-box hidden"></div>
+
+  <div id="mainArea">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>Generating your first question…</div>
+    </div>
+  </div>
+
+  <div class="actions" id="actionBar" style="display:none">
+    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next Question →</button>
+    <button class="btn btn-secondary" onclick="showHint()">💡 Hint</button>
+  </div>
+</div>
+
+<script>
+const TIPS = {
+  math: [
+    "<strong>Arithmetic Reasoning tip:</strong> Always re-read word problems twice. Underline the question asked.",
+    "<strong>Math Knowledge tip:</strong> Know your exponent rules cold: x⁰=1, xᵃ·xᵇ=xᵃ⁺ᵇ.",
+    "<strong>Fractions tip:</strong> To compare fractions, cross-multiply. Bigger product = bigger fraction.",
+    "<strong>Percent tip:</strong> 'X% of Y' = (X/100)×Y. Memorize this pattern.",
+    "<strong>Ratio tip:</strong> Set up ratios as fractions and cross-multiply to solve for unknowns."
+  ],
+  verbal: [
+    "<strong>Analogies tip:</strong> Say the relationship aloud: 'A is to B as C is to ___'.",
+    "<strong>Vocabulary tip:</strong> Use roots: 'bene' = good, 'mal' = bad, 'port' = carry, 'dict' = say.",
+    "<strong>Reading tip:</strong> On comprehension, find the answer in the passage — don't go by memory.",
+    "<strong>Antonym tip:</strong> If you don't know a word, think about if you've heard it in a positive or negative context.",
+    "<strong>Word Knowledge tip:</strong> Learn 5 new words daily. Context clues are your best friend on test day."
+  ]
+};
+
+let mode = 'math';
+let diff = 'easy';
+let correct = 0, total = 0, streak = 0;
+let currentQ = null;
+let answered = false;
+let hintShown = false;
+let sessionTip = null;
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['math','verbal','mixed'][i]===m));
+  updateCatDisplay();
+  loadQuestion();
+}
+function setDiff(d) {
+  diff = d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===d));
+  loadQuestion();
+}
+function updateCatDisplay() {
+  document.getElementById('catVal').textContent = mode.charAt(0).toUpperCase()+mode.slice(1);
+}
+
+function showRandomTip() {
+  const pool = mode==='mixed' ? [...TIPS.math,...TIPS.verbal] : TIPS[mode]||TIPS.math;
+  const t = pool[Math.floor(Math.random()*pool.length)];
+  const box = document.getElementById('tipBox');
+  if(t!==sessionTip){ sessionTip=t; box.innerHTML=t; box.classList.remove('hidden'); }
+}
+
+function buildPrompt() {
+  const mathTopics = {
+    easy: "basic arithmetic, fractions, percentages, simple ratios (no algebra)",
+    medium: "algebra, geometry basics, word problems, averages, basic probability",
+    hard: "quadratics, advanced geometry, systems of equations, number theory"
+  };
+  const verbalTopics = {
+    easy: "simple vocabulary synonyms/antonyms, basic analogies",
+    medium: "moderate vocabulary, analogies, reading comprehension sentence completion",
+    hard: "advanced vocabulary, complex analogies, nuanced reading comprehension"
+  };
+
+  let topic = '';
+  if(mode==='math') topic = `AFOQT Math/Arithmetic Reasoning focusing on: ${mathTopics[diff]}`;
+  else if(mode==='verbal') topic = `AFOQT Word Knowledge/Verbal Analogies focusing on: ${verbalTopics[diff]}`;
+  else {
+    const pick = Math.random()<0.5;
+    topic = pick ? `AFOQT Math focusing on: ${mathTopics[diff]}` : `AFOQT Verbal focusing on: ${verbalTopics[diff]}`;
+  }
+
+  return `You are an AFOQT exam tutor. Generate ONE practice question for: ${topic}.
+
+Return ONLY valid JSON in this exact format, nothing else:
+{
+  "type": "Math" or "Verbal",
+  "subtype": short label like "Arithmetic" or "Word Knowledge" or "Analogies" etc,
+  "question": "the full question text",
+  "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
+  "answer": 0,
+  "explanation": "brief clear explanation of why the answer is correct and how to solve it",
+  "hint": "one helpful hint without giving away the answer"
+}
+
+answer is the 0-based index of the correct option. Make the question realistic for the actual AFOQT exam. Do not include markdown or any text outside the JSON.`;
+}
+
+async function loadQuestion() {
+  answered = false;
+  hintShown = false;
+  document.getElementById('actionBar').style.display = 'none';
+  document.getElementById('mainArea').innerHTML = `<div class="loading"><div class="spinner"></div><div>Generating question…</div></div>`;
+  showRandomTip();
+  updateCatDisplay();
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: buildPrompt() }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content.map(c=>c.text||'').join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    currentQ = JSON.parse(clean);
+    renderQuestion();
+  } catch(e) {
+    document.getElementById('mainArea').innerHTML = `<div class="loading" style="color:#f87171">⚠️ Could not load question. Check connection and try again.<br><br><button class="btn btn-secondary" onclick="loadQuestion()" style="margin-top:12px">Retry</button></div>`;
+  }
+}
+
+function renderQuestion() {
+  const q = currentQ;
+  const letters = ['A','B','C','D'];
+  const opts = q.options.map((o,i)=>`
+    <button class="opt-btn" id="opt${i}" onclick="selectAnswer(${i})">
+      <span class="opt-letter">${letters[i]}</span>
+      <span>${o.replace(/^[A-D]\)\s*/,'')}</span>
+    </button>`).join('');
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="q-card" id="qCard">
+      <div>
+        <div class="q-meta">
+          <span class="q-type">${q.subtype||q.type}</span>
+          <span class="q-num">Q${total+1} · ${diff.toUpperCase()}</span>
+        </div>
+        <div class="q-text">${q.question}</div>
+        <div class="options">${opts}</div>
+        <div class="feedback" id="feedback">
+          <div class="feedback-title" id="fbTitle"></div>
+          <div id="fbBody"></div>
+        </div>
+      </div>
+    </div>`;
+
+  updateProgress();
+}
+
+function selectAnswer(i) {
+  if(answered) return;
+  answered = true;
+  total++;
+
+  const correct_ans = currentQ.answer;
+  const isCorrect = i === correct_ans;
+
+  if(isCorrect){ correct++; streak++; } else { streak=0; }
+
+  // Update score display
+  document.getElementById('scoreVal').textContent = total>0 ? Math.round(correct/total*100)+'%' : '—';
+  document.getElementById('streakVal').textContent = streak;
+  document.getElementById('doneVal').textContent = total;
+
+  // Style options
+  document.querySelectorAll('.opt-btn').forEach((b,idx)=>{
+    b.disabled = true;
+    if(idx===i && isCorrect) b.classList.add('selected-correct');
+    else if(idx===i && !isCorrect) b.classList.add('selected-wrong');
+    else if(idx===correct_ans) b.classList.add('reveal-correct');
+  });
+
+  // Feedback
+  const fb = document.getElementById('feedback');
+  fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
+  document.getElementById('fbTitle').textContent = isCorrect ? '✓ Correct!' : '✗ Not quite.';
+  document.getElementById('fbBody').textContent = currentQ.explanation;
+
+  document.getElementById('qCard').classList.add(isCorrect ? 'correct' : 'wrong');
+  document.getElementById('actionBar').style.display = 'flex';
+  updateProgress();
+}
+
+function showHint() {
+  if(!currentQ || answered || hintShown) return;
+  hintShown = true;
+  const box = document.getElementById('tipBox');
+  box.innerHTML = `<strong>💡 Hint:</strong> ${currentQ.hint}`;
+  box.classList.remove('hidden');
+}
+
+function nextQuestion() {
+  loadQuestion();
+}
+
+function updateProgress() {
+  const pct = total===0 ? 0 : Math.round(correct/total*100);
+  document.getElementById('progBar').style.width = pct+'%';
+}
+
+// Kick off
+updateCatDisplay();
+loadQuestion();
+</script>
+</body>
+</html>
