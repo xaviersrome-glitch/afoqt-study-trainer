@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFOQT Study Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c18;
+  --surface: #0f1628;
+  --card: #141d35;
+  --card2: #1a2442;
+  --border: rgba(255,255,255,0.07);
+  --gold: #f0b429;
+  --gold2: #d4960f;
+  --sky: #38bdf8;
+  --green: #4ade80;
+  --red: #f87171;
+  --purple: #a78bfa;
+  --white: #eef2ff;
+  --muted: #64748b;
+  --r: 14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--white);
+  font-family:'Syne',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 0%,rgba(56,189,248,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 100%,rgba(240,180,41,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 50%,rgba(167,139,250,0.03) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── LAYOUT ── */
+.app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── API KEY GATE ── */
+#apiGate{
+  position:fixed;inset:0;background:rgba(8,12,24,0.97);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;padding:20px;
+}
+.gate-box{
+  background:var(--card);border:1px solid rgba(240,180,41,0.3);
+  border-radius:20px;padding:40px;max-width:480px;width:100%;text-align:center;
+}
+.gate-icon{font-size:48px;margin-bottom:16px;}
+.gate-box h2{font-size:28px;letter-spacing:2px;color:var(--gold);margin-bottom:8px;}
+.gate-box p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;}
+.gate-box a{color:var(--sky);text-decoration:none;}
+.api-input{
+  width:100%;padding:14px 16px;background:var(--surface);
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--white);font-family:'DM Mono',monospace;font-size:13px;
+  margin-bottom:12px;outline:none;transition:border-color .2s;
+}
+.api-input:focus{border-color:var(--gold);}
+.api-err{color:var(--red);font-size:12px;margin-bottom:12px;display:none;}
+
+/* ── NAV ── */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 28px;border-bottom:1px solid var(--border);
+  background:rgba(8,12,24,0.8);backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--white);}
+.nav-logo span{color:var(--gold);}
+.nav-tabs{display:flex;gap:4px;background:var(--surface);border-radius:10px;padding:4px;}
+.nav-tab{
+  padding:8px 18px;border:none;background:transparent;
+  color:var(--muted);border-radius:8px;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:600;
+  transition:all .2s;white-space:nowrap;
+}
+.nav-tab.active{background:var(--gold);color:var(--bg);}
+.nav-tab:not(.active):hover{color:var(--white);background:rgba(255,255,255,0.05);}
+.nav-key{
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);
+  cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:4px 10px;
+  transition:all .2s;
+}
+.nav-key:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ── PAGES ── */
+.page{display:none;padding:28px 24px 80px;max-width:920px;margin:0 auto;width:100%;}
+.page.active{display:block;}
+
+/* ── PRACTICE PAGE ── */
+.score-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+.sc{
+  flex:1;min-width:90px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;
+}
+.sc .lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:4px;}
+.sc .val{font-family:'DM Mono',monospace;font-size:22px;color:var(--gold);}
+
+.ctrl-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.pill-group{display:flex;gap:4px;background:var(--surface);border-radius:8px;padding:3px;}
+.pill{
+  padding:6px 14px;border:none;background:transparent;color:var(--muted);
+  border-radius:6px;cursor:pointer;font-family:'Syne',sans-serif;
+  font-size:12px;font-weight:600;transition:all .2s;
+}
+.pill.active{background:var(--card2);color:var(--white);}
+.pill.active.gold{background:var(--gold);color:var(--bg);}
+
+.prog-wrap{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin-bottom:24px;}
+.prog{height:3px;background:linear-gradient(90deg,var(--sky),var(--gold));border-radius:2px;transition:width .5s;}
+
+/* Question card */
+.q-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:28px 32px;margin-bottom:16px;
+  transition:border-color .3s;
+}
+.q-card.ok{border-color:var(--green);}
+.q-card.bad{border-color:var(--red);}
+.q-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.q-tag{
+  font-size:10px;text-transform:uppercase;letter-spacing:2px;
+  color:var(--sky);font-weight:700;background:rgba(56,189,248,0.1);
+  border-radius:20px;padding:4px 12px;
+}
+.q-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.q-text{font-size:17px;line-height:1.7;color:var(--white);margin-bottom:24px;font-weight:400;}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:560px){.opts{grid-template-columns:1fr;}}
+.opt{
+  padding:14px 16px;background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--white);text-align:left;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:400;
+  transition:all .2s;display:flex;align-items:flex-start;gap:12px;
+}
+.opt:hover:not(:disabled){border-color:rgba(240,180,41,0.5);background:rgba(240,180,41,0.06);}
+.opt:disabled{cursor:default;}
+.opt.ok{border-color:var(--green);background:rgba(74,222,128,0.1);color:var(--green);}
+.opt.bad{border-color:var(--red);background:rgba(248,113,113,0.1);color:var(--red);}
+.opt.show-ok{border-color:var(--green);background:rgba(74,222,128,0.06);color:var(--green);}
+.opt-l{
+  font-family:'DM Mono',monospace;font-size:11px;min-width:24px;height:24px;
+  border-radius:6px;background:rgba(255,255,255,0.07);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0;
+}
+
+.fb{
+  border-radius:10px;padding:16px 20px;margin-top:14px;
+  font-size:14px;line-height:1.7;display:none;
+}
+.fb.show{display:block;}
+.fb.ok{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);color:#86efac;}
+.fb.bad{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:#fca5a5;}
+.fb-title{font-weight:700;font-size:15px;margin-bottom:6px;}
+
+/* Steps */
+.steps-box{
+  background:var(--surface);border:1px solid rgba(167,139,250,0.2);
+  border-radius:10px;padding:16px 20px;margin-top:12px;display:none;
+}
+.steps-box.show{display:block;}
+.steps-box h4{color:var(--purple);font-size:12px;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;}
+.step{display:flex;gap:12px;margin-bottom:10px;font-size:13px;line-height:1.6;color:#c4b5fd;}
+.step-n{
+  min-width:22px;height:22px;border-radius:50%;background:rgba(167,139,250,0.2);
+  border:1px solid rgba(167,139,250,0.4);display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;color:var(--purple);flex-shrink:0;
+}
+
+.act-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.btn{
+  padding:12px 24px;border-radius:10px;border:none;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  transition:all .2s;letter-spacing:.3px;
+}
+.btn-gold{background:var(--gold);color:var(--bg);}
+.btn-gold:hover{background:var(--gold2);transform:translateY(-1px);}
+.btn-ghost{background:rgba(255,255,255,0.06);color:var(--white);border:1px solid var(--border);}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);}
+.btn-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3);}
+.btn-purple:hover{background:rgba(167,139,250,0.25);}
+
+/* loading */
+.loading{text-align:center;padding:60px 20px;color:var(--muted);}
+.spin{width:32px;height:32px;border:3px solid rgba(240,180,41,0.15);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── LEARN PAGE ── */
+.learn-hero{text-align:center;padding:40px 0 32px;}
+.learn-hero h2{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:3px;color:var(--white);}
+.learn-hero h2 span{color:var(--gold);}
+.learn-hero p{color:var(--muted);font-size:14px;margin-top:8px;}
+
+.section-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:3px;
+  color:var(--muted);margin-bottom:14px;margin-top:32px;padding-left:2px;
+}
+
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:10px;}
+.learn-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;cursor:pointer;transition:all .25s;
+  display:flex;flex-direction:column;gap:8px;
+}
+.learn-card:hover{border-color:var(--gold);transform:translateY(-2px);background:var(--card2);}
+.lc-icon{font-size:28px;}
+.lc-title{font-size:15px;font-weight:700;color:var(--white);}
+.lc-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.lc-tag{font-size:10px;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:4px;font-weight:600;}
+.tag-math{background:rgba(56,189,248,0.12);color:var(--sky);}
+.tag-verbal{background:rgba(74,222,128,0.12);color:var(--green);}
+.tag-both{background:rgba(240,180,41,0.12);color:var(--gold);}
+
+/* Lesson panel */
+#lessonPanel{display:none;}
+.lesson-back{
+  display:flex;align-items:center;gap:8px;color:var(--muted);cursor:pointer;
+  font-size:13px;margin-bottom:24px;width:fit-content;
+  transition:color .2s;
+}
+.lesson-back:hover{color:var(--white);}
+.lesson-title{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:2px;margin-bottom:6px;}
+.lesson-subtitle{color:var(--muted);font-size:14px;margin-bottom:28px;}
+
+.lesson-content{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  padding:28px 32px;margin-bottom:16px;
+}
+.lesson-content h3{font-size:18px;color:var(--gold);margin-bottom:14px;font-weight:700;}
+.lesson-content p{font-size:14px;line-height:1.8;color:#c8d5f0;margin-bottom:12px;}
+.lesson-content ul,
+.lesson-content ol{padding-left:20px;margin-bottom:12px;}
+.lesson-content li{font-size:14px;line-height:1.8;color:#c8d5f0;margin-bottom:4px;}
+.formula-box{
+  background:var(--surface);border:1px solid rgba(240,180,41,0.2);
+  border-radius:10px;padding:14px 18px;margin:12px 0;
+  font-family:'DM Mono',monospace;font-size:14px;color:var(--gold);
+  line-height:1.8;
+}
+.example-box{
+  background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.15);
+  border-radius:10px;padding:16px 18px;margin:12px 0;
+}
+.example-box .ex-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--sky);margin-bottom:8px;font-weight:700;}
+.example-box p{font-size:14px;color:#bae6fd;line-height:1.7;margin-bottom:6px;}
+.tip-callout{
+  background:rgba(167,139,250,0.07);border-left:3px solid var(--purple);
+  border-radius:0 10px 10px 0;padding:14px 18px;margin:12px 0;
+  font-size:13px;color:#c4b5fd;line-height:1.6;
+}
+.tip-callout strong{color:var(--purple);}
+
+.cheat-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+.cheat-table th{background:rgba(240,180,41,0.1);color:var(--gold);padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;}
+.cheat-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:#c8d5f0;line-height:1.5;}
+.cheat-table tr:last-child td{border-bottom:none;}
+.cheat-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+.ai-lesson-area{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:24px 28px;
+}
+.ai-lesson-area.loading-state{text-align:center;padding:48px;}
+
+/* ── TIMER ── */
+.timer-bar{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px 18px;margin-bottom:16px;
+}
+.timer-display{
+  font-family:'DM Mono',monospace;font-size:26px;font-weight:500;
+  color:var(--gold);min-width:60px;
+}
+.timer-display.warning{color:var(--red);animation:pulse .6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.timer-label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);}
+.timer-toggle{
+  margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:12px;
+  font-family:'Syne',sans-serif;font-weight:600;transition:all .2s;
+}
+.timer-toggle.on{border-color:var(--gold);color:var(--gold);background:rgba(240,180,41,0.08);}
+
+/* ── WEAK SPOT TRACKER ── */
+.tracker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px;}
+.tracker-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.tracker-card .tc-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;}
+.tracker-card .tc-name{font-size:14px;font-weight:700;color:var(--white);margin-bottom:10px;}
+.tc-bar-wrap{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-bottom:6px;}
+.tc-bar{height:6px;border-radius:3px;transition:width .5s;}
+.tc-bar.good{background:var(--green);}
+.tc-bar.warn{background:var(--gold);}
+.tc-bar.bad{background:var(--red);}
+.tc-stat{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+
+/* ── FLASHCARDS ── */
+.flashcard-wrap{perspective:1000px;margin-bottom:24px;}
+.flashcard{
+  width:100%;min-height:220px;position:relative;
+  transform-style:preserve-3d;transition:transform .5s ease;cursor:pointer;
+}
+.flashcard.flipped{transform:rotateY(180deg);}
+.fc-front,.fc-back{
+  position:absolute;inset:0;backface-visibility:hidden;
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;text-align:center;
+}
+.fc-back{transform:rotateY(180deg);background:var(--card2);}
+.fc-word{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;color:var(--gold);}
+.fc-def{font-size:16px;line-height:1.7;color:var(--white);}
+.fc-pos{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--sky);margin-bottom:8px;}
+.fc-hook{font-size:13px;color:var(--purple);margin-top:12px;font-style:italic;}
+.fc-tap{font-size:11px;color:var(--muted);margin-top:16px;text-transform:uppercase;letter-spacing:1px;}
+.fc-nav{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:8px;}
+.fc-count{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);}
+.fc-result{display:flex;gap:8px;margin-top:12px;justify-content:center;}
+.btn-green{background:rgba(74,222,128,0.15);color:var(--green);border:1px solid rgba(74,222,128,0.3);}
+.btn-green:hover{background:rgba(74,222,128,0.25);}
+.btn-red{background:rgba(248,113,113,0.15);color:var(--red);border:1px solid rgba(248,113,113,0.3);}
+.btn-red:hover{background:rgba(248,113,113,0.25);}
+
+/* ── MOCK EXAM ── */
+.exam-hero{text-align:center;padding:32px 0 24px;}
+.exam-hero h2{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:3px;}
+.exam-hero h2 span{color:var(--red);}
+.exam-sections{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+.exam-sec{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;
+  text-align:center;
+}
+.exam-sec .es-icon{font-size:28px;margin-bottom:8px;}
+.exam-sec .es-name{font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px;}
+.exam-sec .es-info{font-size:11px;color:var(--muted);}
+.exam-active{display:none;}
+.exam-hud{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:12px 20px;margin-bottom:18px;flex-wrap:wrap;gap:10px;
+}
+.exam-hud-item .lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);}
+.exam-hud-item .val{font-family:'DM Mono',monospace;font-size:18px;color:var(--white);}
+.exam-hud-timer{color:var(--gold);}
+.exam-hud-timer.warn{color:var(--red);animation:pulse .6s infinite;}
+.exam-results{display:none;text-align:center;padding:40px 20px;}
+.exam-results h2{font-family:'Bebas Neue',sans-serif;font-size:56px;color:var(--gold);}
+.exam-section-results{margin-top:24px;text-align:left;}
+.esr-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;
+}
+.esr-score{font-family:'DM Mono',monospace;font-weight:700;}
+.esr-score.pass{color:var(--green);}
+.esr-score.fail{color:var(--red);}
+</style>
+</head>
+<body>
+
+<!-- API KEY GATE -->
+<div id="apiGate">
+  <div class="gate-box">
+    <div class="gate-icon">🔑</div>
+    <h2>AI TUTOR KEY</h2>
+    <p>The AI Tutor uses Claude to answer your questions. Enter your Anthropic API key to unlock it.<br><br>
+    Get one free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys.<br><br>
+    <strong style="color:var(--gold)">Practice mode works without a key!</strong></p>
+    <input class="api-input" id="apiInput" type="password" placeholder="sk-ant-api03-..." />
+    <div class="api-err" id="apiErr">Invalid key — please check and try again.</div>
+    <button class="btn btn-gold" style="width:100%" onclick="saveKey()">Unlock Trainer ✈️</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">FLY <span>SMART</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('practice')">⚡ Practice</button>
+    <button class="nav-tab" onclick="showPage('flash')">🃏 Flash</button>
+    <button class="nav-tab" onclick="showPage('tracker')">📊 Stats</button>
+    <button class="nav-tab" onclick="showPage('exam')">📝 Exam</button>
+    <button class="nav-tab" onclick="showPage('learn')">📚 Learn</button>
+    <button class="nav-tab" onclick="showPage('sheets')">📋 Sheets</button>
+  </div>
+  <div class="nav-key" onclick="changeKey()" title="Change API key">🔑 Key</div>
+</nav>
+
+<!-- ═══════════════ PRACTICE PAGE ═══════════════ -->
+<div class="page active" id="page-practice">
+  <div class="score-row">
+    <div class="sc"><div class="lbl">Score</div><div class="val" id="scoreVal">—</div></div>
+    <div class="sc"><div class="lbl">Streak 🔥</div><div class="val" id="streakVal">0</div></div>
+    <div class="sc"><div class="lbl">Done</div><div class="val" id="doneVal">0</div></div>
+    <div class="sc"><div class="lbl">Mode</div><div class="val" id="modeVal" style="font-size:13px;margin-top:4px;">Math</div></div>
+  </div>
+
+  <div class="ctrl-row">
+    <div class="pill-group" id="modePills">
+      <button class="pill active gold" onclick="setMode('math',this)">📐 Math</button>
+      <button class="pill" onclick="setMode('verbal',this)">📖 Verbal</button>
+      <button class="pill" onclick="setMode('mixed',this)">⚡ Mixed</button>
+    </div>
+    <div class="pill-group" id="diffPills">
+      <button class="pill active gold" onclick="setDiff('easy',this)">Easy</button>
+      <button class="pill" onclick="setDiff('medium',this)">Medium</button>
+      <button class="pill" onclick="setDiff('hard',this)">Hard</button>
+    </div>
+    <button class="timer-toggle" id="timerModeBtn" onclick="toggleTimedMode()" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;transition:all .2s;">⏱ Timed OFF</button>
+  </div>
+
+  <div class="prog-wrap"><div class="prog" id="progBar" style="width:0%"></div></div>
+
+  <!-- TIMER BAR -->
+  <div class="timer-bar" id="timerBar" style="display:none">
+    <div>
+      <div class="timer-label">Time Left</div>
+      <div class="timer-display" id="timerDisplay">1:30</div>
+    </div>
+    <div style="flex:1;margin:0 16px;">
+      <div class="tc-bar-wrap"><div class="tc-bar good" id="timerBarFill" style="width:100%"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Per question · AFOQT pace</div>
+    </div>
+    <button class="timer-toggle on" id="timerToggle" onclick="toggleTimer()">⏱ ON</button>
+  </div>
+
+  <div id="qArea"><div class="loading"><div class="spin"></div>Loading first question…</div></div>
+
+  <div class="act-row" id="actRow" style="display:none">
+    <button class="btn btn-gold" onclick="nextQ()">Next Question →</button>
+    <button class="btn btn-purple" id="stepsBtn" onclick="toggleSteps()">📋 Show Steps</button>
+    <button class="btn btn-ghost" onclick="showHint()">💡 Hint</button>
+  </div>
+</div>
+
+<!-- ═══════════════ FLASHCARD PAGE ═══════════════ -->
+<div class="page" id="page-flash">
+  <div class="learn-hero">
+    <h2>VOCAB <span style="color:var(--sky)">FLASHCARDS</span></h2>
+    <p>Tap card to reveal · Mark Known or Review to track progress</p>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+    <div class="pill-group" id="fcCatPills">
+      <button class="pill active gold" onclick="setFCCat('all',this)">All Words</button>
+      <button class="pill" onclick="setFCCat('review',this)">⚠️ Review</button>
+      <button class="pill" onclick="setFCCat('known',this)">✅ Known</button>
+    </div>
+    <div class="fc-count" id="fcProgress" style="margin-left:auto"></div>
+  </div>
+  <div class="flashcard-wrap">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="fc-front">
+        <div class="fc-pos" id="fcPos">noun</div>
+        <div class="fc-word" id="fcWord">ACRIMONY</div>
+        <div class="fc-tap">Tap to reveal definition</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-pos" id="fcPos2">noun</div>
+        <div class="fc-def" id="fcDef">Bitterness or ill feeling</div>
+        <div class="fc-hook" id="fcHook">💡 "Acrid" = sharp/bitter smell</div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-result">
+    <button class="btn btn-red" onclick="markCard('review')">⚠️ Still Learning</button>
+    <button class="btn btn-ghost" onclick="nextCard()">Skip →</button>
+    <button class="btn btn-green" onclick="markCard('known')">✅ Got It!</button>
+  </div>
+  <div style="margin-top:20px;background:var(--card);border-radius:12px;padding:16px 20px;border:1px solid var(--border);">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;">Session Progress</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div><span style="color:var(--green);font-family:'DM Mono',monospace;font-size:18px;" id="fcKnownCount">0</span> <span style="color:var(--muted);font-size:12px;">Known</span></div>
+      <div><span style="color:var(--red);font-family:'DM Mono',monospace;font-size:18px;" id="fcReviewCount">0</span> <span style="color:var(--muted);font-size:12px;">Review</span></div>
+      <div><span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:18px;" id="fcLeftCount">0</span> <span style="color:var(--muted);font-size:12px;">Left</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TRACKER PAGE ═══════════════ -->
+<div class="page" id="page-tracker">
+  <div class="learn-hero">
+    <h2>YOUR <span style="color:var(--sky)">WEAK SPOTS</span></h2>
+    <p>Based on your practice answers this session</p>
+  </div>
+  <div id="trackerEmpty" style="text-align:center;padding:48px 20px;color:var(--muted);">
+    <div style="font-size:48px;margin-bottom:16px;">📊</div>
+    <div style="font-size:16px;margin-bottom:8px;color:var(--white)">No data yet</div>
+    <div style="font-size:13px;">Answer at least 5 questions in Practice to see your weak spots.</div>
+    <button class="btn btn-gold" onclick="showPage('practice')" style="margin-top:20px">Go Practice →</button>
+  </div>
+  <div id="trackerContent" style="display:none">
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <div class="sc" style="flex:1;min-width:100px"><div class="lbl">Total Done</div><div class="val" id="trTotal">0</div></div>
+      <div class="sc" style="flex:1;min-width:100px"><div class="lbl">Overall Score</div><div class="val" id="trOverall">—</div></div>
+      <div class="sc" style="flex:1;min-width:100px"><div class="lbl">Best Topic</div><div class="val" style="font-size:13px;margin-top:4px" id="trBest">—</div></div>
+      <div class="sc" style="flex:1;min-width:100px"><div class="lbl">Needs Work</div><div class="val" style="font-size:13px;margin-top:4px;color:var(--red)" id="trWorst">—</div></div>
+    </div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;">Performance by Subtype</div>
+    <div class="tracker-grid" id="trackerGrid"></div>
+    <div style="margin-top:24px;text-align:center;">
+      <button class="btn btn-ghost" onclick="showPage('practice')">Keep Practicing →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MOCK EXAM PAGE ═══════════════ -->
+<div class="page" id="page-exam">
+  <div id="examMenu">
+    <div class="exam-hero">
+      <h2>MOCK <span>EXAM</span></h2>
+      <p>Simulates real AFOQT time limits · 4 sections · Full debrief at the end</p>
+    </div>
+    <div class="exam-sections">
+      <div class="exam-sec"><div class="es-icon">🔢</div><div class="es-name">Arithmetic Reasoning</div><div class="es-info">15 questions · 29 min</div></div>
+      <div class="exam-sec"><div class="es-icon">📐</div><div class="es-name">Math Knowledge</div><div class="es-info">15 questions · 22 min</div></div>
+      <div class="exam-sec"><div class="es-icon">📖</div><div class="es-name">Word Knowledge</div><div class="es-info">15 questions · 5 min</div></div>
+      <div class="exam-sec"><div class="es-icon">🔗</div><div class="es-name">Verbal Analogies</div><div class="es-info">15 questions · 8 min</div></div>
+    </div>
+    <div class="tip-callout" style="margin-bottom:20px"><strong>⚠️ Heads up:</strong> Word Knowledge is 5 minutes for 15 questions — that's 20 seconds per question. This is intentionally brutal to simulate real test pressure.</div>
+    <button class="btn btn-gold" style="width:100%;padding:16px;font-size:16px;" onclick="startExam()">Start Mock Exam →</button>
+  </div>
+
+  <div class="exam-active" id="examActive">
+    <div class="exam-hud">
+      <div class="exam-hud-item"><div class="lbl">Section</div><div class="val" id="examSecName">—</div></div>
+      <div class="exam-hud-item"><div class="lbl">Question</div><div class="val" id="examQNum">—</div></div>
+      <div class="exam-hud-item"><div class="lbl">Time Left</div><div class="val exam-hud-timer" id="examTimer">—</div></div>
+      <div class="exam-hud-item"><div class="lbl">Score</div><div class="val" id="examScore">—</div></div>
+    </div>
+    <div id="examQArea"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;" id="examActRow" style="display:none">
+      <button class="btn btn-gold" onclick="nextExamQ()">Next →</button>
+    </div>
+  </div>
+
+  <div class="exam-results" id="examResults">
+    <div style="font-size:48px;margin-bottom:12px;">🎖️</div>
+    <h2 id="examFinalPct">—</h2>
+    <div style="color:var(--muted);font-size:14px;margin-bottom:8px;">Overall Mock Score</div>
+    <div id="examGrade" style="font-size:16px;margin-bottom:28px;"></div>
+    <div class="exam-section-results" id="examSecResults"></div>
+    <button class="btn btn-gold" onclick="resetExam()" style="margin-top:28px;width:100%;padding:14px;">Retake Exam</button>
+    <button class="btn btn-ghost" onclick="showPage('practice')" style="margin-top:10px;width:100%;padding:14px;">Back to Practice</button>
+  </div>
+</div>
+
+<!-- ═══════════════ LEARN PAGE ═══════════════ -->
+<div class="page" id="page-learn">
+  <div id="learnMenu">
+    <div class="learn-hero">
+      <h2>STUDY <span>CENTER</span></h2>
+      <p>Everything you need to understand the AFOQT — from scratch</p>
+    </div>
+
+    <div class="section-label">📐 Math Topics</div>
+    <div class="cards-grid">
+      <div class="learn-card" onclick="openLesson('fractions')">
+        <div class="lc-icon">½</div>
+        <div class="lc-title">Fractions & Decimals</div>
+        <div class="lc-desc">Add, subtract, multiply, divide fractions. Convert to decimals.</div>
+        <span class="lc-tag tag-math">Math</span>
+      </div>
+      <div class="learn-card" onclick="openLesson('percent')">
+        <div class="lc-icon">%</div>
+        <div class="lc-title">Percentages & Ratios</div>
+        <div class="lc-desc">Percent of, percent change, ratio/proportion problems.</div>
+        <span class="lc-tag tag-math">Math</span>
+      </div>
+      <div class="learn-card" onclick="openLesson('algebra')">
+        <div class="lc-icon">x²</div>
+        <div class="lc-title">Algebra Fundamentals</div>
+        <div class="lc-desc">Solving equations, inequalities, systems, quadratics.</div>
+        <span class="lc-tag tag-math">Math</span>
+      </div>
+      <div class="learn-card" onclick="openLesson('geometry')">
+        <div class="lc-icon">△</div>
+        <div class="lc-title">Geometry</div>
+        <div class="lc-desc">Area, perimeter, volume, angles, triangles, circles.</div>
+        <span class="lc-tag tag-math">Math</span>
+      </div>
+      <div class="learn-card" onclick="openLesson('wordprob')">
+        <div class="lc-icon">🧩</div>
+        <div class="lc-title">Word Problems</div>
+        <div class="lc-desc">Step-by-step strategy for arithmetic reasoning problems.</div>
+        <span class="lc-tag tag-math">Math</span>
+      </div>
+    </div>
+
+    <div class="section-label">📖 Verbal Topics</div>
+    <div class="cards-grid">
+      <div class="learn-card" onclick="openLesson('vocab')">
+        <div class="lc-icon">📝</div>
+        <div class="lc-title">Vocabulary & Word Roots</div>
+        <div class="lc-desc">High-frequency AFOQT words, prefixes, suffixes, roots.</div>
+        <span class="lc-tag tag-verbal">Verbal</span>
+      </div>
+      <div class="learn-card" onclick="openLesson('analogies')">
+        <div class="lc-icon">🔗</div>
+        <div class="lc-title">Analogies Strategy</div>
+        <div class="lc-desc">How to crack any analogy question. Relationship types + practice.</div>
+        <span class="lc-tag tag-verbal">Verbal</span>
+      </div>
+      <div class="learn-card" onclick="openLesson('reading')">
+        <div class="lc-icon">👁</div>
+        <div class="lc-title">Reading Comprehension</div>
+        <div class="lc-desc">Main idea, inference, tone, detail questions — fast strategies.</div>
+        <span class="lc-tag tag-verbal">Verbal</span>
+      </div>
+      <div class="learn-card" onclick="openLesson('antonyms')">
+        <div class="lc-icon">↔️</div>
+        <div class="lc-title">Synonyms & Antonyms</div>
+        <div class="lc-desc">Context clues, elimination, connotation tricks.</div>
+        <span class="lc-tag tag-verbal">Verbal</span>
+      </div>
+    </div>
+
+    <div class="section-label">🤖 AI Deep Dive</div>
+    <div class="cards-grid">
+      <div class="learn-card" onclick="openAILesson('math')">
+        <div class="lc-icon">🧠</div>
+        <div class="lc-title">AI Math Tutor</div>
+        <div class="lc-desc">Ask Claude to explain any math concept step-by-step, right now.</div>
+        <span class="lc-tag tag-both">AI Powered</span>
+      </div>
+      <div class="learn-card" onclick="openAILesson('verbal')">
+        <div class="lc-icon">💬</div>
+        <div class="lc-title">AI Verbal Tutor</div>
+        <div class="lc-desc">Ask Claude anything about vocabulary, analogies, or reading.</div>
+        <span class="lc-tag tag-both">AI Powered</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LESSON PANEL -->
+  <div id="lessonPanel">
+    <div class="lesson-back" onclick="closeLesson()">← Back to Study Center</div>
+    <div id="lessonContent"></div>
+  </div>
+
+  <!-- AI TUTOR PANEL -->
+  <div id="aiTutorPanel" style="display:none">
+    <div class="lesson-back" onclick="closeAILesson()">← Back to Study Center</div>
+    <div class="lesson-title" id="aiTutorTitle">AI TUTOR</div>
+    <div class="lesson-subtitle">Ask anything — get a full step-by-step explanation</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <input id="aiQ" type="text" class="api-input" style="flex:1;margin:0" placeholder="e.g. How do I solve systems of equations? What does 'benevolent' mean?">
+      <button class="btn btn-gold" onclick="askAI()">Ask →</button>
+    </div>
+    <div id="aiAnswer" class="ai-lesson-area" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ CHEAT SHEETS PAGE ═══════════════ -->
+<div class="page" id="page-sheets">
+  <div class="learn-hero">
+    <h2>CHEAT <span>SHEETS</span></h2>
+    <p>Quick reference for everything on the AFOQT</p>
+  </div>
+
+  <!-- MATH FORMULAS -->
+  <div class="lesson-content">
+    <h3>📐 Essential Math Formulas</h3>
+    <div class="formula-box">
+PERCENTAGES
+  X% of Y = (X ÷ 100) × Y
+  % Change = (New - Old) ÷ Old × 100
+  Original = Final ÷ (1 ± %/100)
+
+FRACTIONS
+  a/b × c/d = ac/bd
+  a/b ÷ c/d = a/b × d/c
+  a/b + c/d = (ad + bc) / bd
+
+RATIOS & PROPORTIONS
+  a/b = c/d → a×d = b×c (cross multiply)
+
+AVERAGES
+  Mean = Sum ÷ Count
+  Sum = Mean × Count
+
+RATES
+  Distance = Rate × Time
+  Rate = Distance ÷ Time</div>
+
+    <h3 style="margin-top:20px">📐 Geometry Quick Reference</h3>
+    <table class="cheat-table">
+      <tr><th>Shape</th><th>Area</th><th>Perimeter/Circumference</th></tr>
+      <tr><td>Rectangle</td><td>l × w</td><td>2(l + w)</td></tr>
+      <tr><td>Triangle</td><td>½ × b × h</td><td>a + b + c</td></tr>
+      <tr><td>Circle</td><td>π r²</td><td>2πr</td></tr>
+      <tr><td>Square</td><td>s²</td><td>4s</td></tr>
+      <tr><td>Trapezoid</td><td>½(b₁+b₂)×h</td><td>sum of sides</td></tr>
+    </table>
+    <table class="cheat-table">
+      <tr><th>Solid</th><th>Volume</th><th>Surface Area</th></tr>
+      <tr><td>Cube</td><td>s³</td><td>6s²</td></tr>
+      <tr><td>Box</td><td>l×w×h</td><td>2(lw+lh+wh)</td></tr>
+      <tr><td>Cylinder</td><td>πr²h</td><td>2πr²+2πrh</td></tr>
+      <tr><td>Sphere</td><td>⁴⁄₃πr³</td><td>4πr²</td></tr>
+    </table>
+
+    <h3 style="margin-top:20px">📐 Algebra Rules</h3>
+    <div class="formula-box">
+EXPONENTS
+  x⁰ = 1          xᵃ × xᵇ = xᵃ⁺ᵇ
+  xᵃ ÷ xᵇ = xᵃ⁻ᵇ   (xᵃ)ᵇ = xᵃᵇ
+  x⁻ᵃ = 1/xᵃ      √x = x^(1/2)
+
+QUADRATIC FORMULA
+  x = (-b ± √(b²-4ac)) / 2a
+  for ax² + bx + c = 0
+
+FOIL  (a+b)(c+d) = ac + ad + bc + bd
+DIFF OF SQUARES  a²-b² = (a+b)(a-b)
+PERFECT SQUARE  (a+b)² = a²+2ab+b²</div>
+  </div>
+
+  <!-- VERBAL REFERENCE -->
+  <div class="lesson-content" style="margin-top:16px">
+    <h3>📖 Word Roots Cheat Sheet</h3>
+    <table class="cheat-table">
+      <tr><th>Root</th><th>Meaning</th><th>Examples</th></tr>
+      <tr><td>bene / bon</td><td>good</td><td>benefit, bonus, benevolent</td></tr>
+      <tr><td>mal / mis</td><td>bad</td><td>malicious, mistake, malevolent</td></tr>
+      <tr><td>port</td><td>carry</td><td>portable, transport, import</td></tr>
+      <tr><td>dict / loc / voc</td><td>say/speak</td><td>dictate, location, vocal</td></tr>
+      <tr><td>vert / vers</td><td>turn</td><td>convert, reverse, divert</td></tr>
+      <tr><td>scrib / script</td><td>write</td><td>describe, manuscript, inscribe</td></tr>
+      <tr><td>aud / son</td><td>hear/sound</td><td>audio, sonic, audible</td></tr>
+      <tr><td>vis / vid</td><td>see</td><td>vision, video, visible</td></tr>
+      <tr><td>chrono / temp</td><td>time</td><td>chronic, temporary, chronology</td></tr>
+      <tr><td>geo / terra</td><td>earth</td><td>geography, terrain, geology</td></tr>
+      <tr><td>bio / vit</td><td>life</td><td>biology, vital, biography</td></tr>
+      <tr><td>phil</td><td>love</td><td>philosophy, philanthropist</td></tr>
+      <tr><td>mis / mono</td><td>hate/one</td><td>misanthrope, monotone</td></tr>
+      <tr><td>multi / poly</td><td>many</td><td>multiply, polygon, polyglot</td></tr>
+      <tr><td>ante / pre</td><td>before</td><td>antecedent, preview, precede</td></tr>
+      <tr><td>post / sub</td><td>after/under</td><td>postpone, submarine, subsequent</td></tr>
+    </table>
+
+    <h3 style="margin-top:20px">📖 Analogy Relationship Types</h3>
+    <table class="cheat-table">
+      <tr><th>Type</th><th>Example</th><th>Bridge Sentence</th></tr>
+      <tr><td>Part → Whole</td><td>FINGER : HAND</td><td>"A finger is part of a hand"</td></tr>
+      <tr><td>Tool → User</td><td>SCALPEL : SURGEON</td><td>"A surgeon uses a scalpel"</td></tr>
+      <tr><td>Cause → Effect</td><td>FIRE : ASH</td><td>"Fire causes ash"</td></tr>
+      <tr><td>Synonym</td><td>HAPPY : ELATED</td><td>"Happy means elated (less intense)"</td></tr>
+      <tr><td>Antonym</td><td>TIMID : BOLD</td><td>"Timid is the opposite of bold"</td></tr>
+      <tr><td>Degree</td><td>WARM : HOT</td><td>"Hot is an extreme form of warm"</td></tr>
+      <tr><td>Member → Group</td><td>SOLDIER : ARMY</td><td>"Soldiers make up an army"</td></tr>
+      <tr><td>Function</td><td>NEEDLE : SEW</td><td>"A needle is used to sew"</td></tr>
+      <tr><td>Location</td><td>FISH : OCEAN</td><td>"Fish live in the ocean"</td></tr>
+    </table>
+
+    <h3 style="margin-top:20px">📖 High-Frequency AFOQT Vocabulary</h3>
+    <table class="cheat-table">
+      <tr><th>Word</th><th>Definition</th><th>Memory Hook</th></tr>
+      <tr><td>Acrimony</td><td>Bitterness, hostility</td><td>"Acrid" = sharp/bitter smell</td></tr>
+      <tr><td>Banal</td><td>Boring, unoriginal</td><td>Same as "bland"</td></tr>
+      <tr><td>Candor</td><td>Honesty, frankness</td><td>"Candid camera" = real/honest</td></tr>
+      <tr><td>Dearth</td><td>Scarcity, lack</td><td>"Death" of supply</td></tr>
+      <tr><td>Ebullient</td><td>Enthusiastic, bubbly</td><td>Like boiling over with excitement</td></tr>
+      <tr><td>Equivocal</td><td>Ambiguous, unclear</td><td>Equal voices = unclear which</td></tr>
+      <tr><td>Furtive</td><td>Secretive, sneaky</td><td>Like a thief (fur coat = sneak)</td></tr>
+      <tr><td>Gregarious</td><td>Sociable, outgoing</td><td>Loves groups (gregarious = herd)</td></tr>
+      <tr><td>Hapless</td><td>Unlucky</td><td>"Hap" = luck, "-less" = without</td></tr>
+      <tr><td>Impetuous</td><td>Impulsive, rash</td><td>Like a storm: impetus = force</td></tr>
+      <tr><td>Loquacious</td><td>Very talkative</td><td>"Loc" = speak + "-ious" = full of</td></tr>
+      <tr><td>Mendacious</td><td>Lying, dishonest</td><td>"Mend" a story = make it up</td></tr>
+      <tr><td>Nefarious</td><td>Wicked, criminal</td><td>Sounds like "nefarious villain"</td></tr>
+      <tr><td>Obsequious</td><td>Excessively agreeable</td><td>Like a yes-man: always obeys</td></tr>
+      <tr><td>Pellucid</td><td>Transparent, clear</td><td>"Lucid" = clear</td></tr>
+      <tr><td>Querulous</td><td>Whiny, complaining</td><td>Like a question/quarrel always</td></tr>
+      <tr><td>Recalcitrant</td><td>Stubbornly resistant</td><td>Re-calculates to resist again</td></tr>
+      <tr><td>Sagacious</td><td>Wise, shrewd</td><td>Like a sage (wise person)</td></tr>
+      <tr><td>Taciturn</td><td>Reserved, quiet</td><td>"Tacit" = silent</td></tr>
+      <tr><td>Verbose</td><td>Using too many words</td><td>"Verb"-ose = too many verbs/words</td></tr>
+    </table>
+  </div>
+
+  <!-- STRATEGY GUIDE -->
+  <div class="lesson-content" style="margin-top:16px">
+    <h3>🎯 Test Strategy Quick Guide</h3>
+    <div class="tip-callout"><strong>Word Problems (Math):</strong> Read twice → underline what's being asked → write out knowns → choose formula → solve → check if answer makes sense.</div>
+    <div class="tip-callout"><strong>Analogies:</strong> Always make a bridge sentence first. "A ___ is used to ___." Then test all 4 answer choices with the SAME sentence.</div>
+    <div class="tip-callout"><strong>Vocabulary you don't know:</strong> Check the prefix/suffix/root → think of a word that sounds similar → use context (positive/negative tone) → eliminate obviously wrong answers.</div>
+    <div class="tip-callout"><strong>Reading Comprehension:</strong> Read the questions FIRST so you know what to look for. The answer is ALWAYS in the passage — don't use outside knowledge.</div>
+    <div class="tip-callout"><strong>Time management:</strong> Don't spend more than 60–90 seconds per question. Mark it and move on — return if time allows.</div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let apiKey = '';
+let mode = 'math', diff = 'easy';
+let correct = 0, total = 0, streak = 0;
+let currentQ = null, answered = false, stepsVisible = false;
+
+// ── API KEY — only needed for AI Tutor ──
+function saveKey() {
+  const k = document.getElementById('apiInput').value.trim();
+  if (!k.startsWith('sk-ant')) {
+    document.getElementById('apiErr').style.display = 'block';
+    return;
+  }
+  apiKey = k;
+  document.getElementById('apiGate').style.display = 'none';
+  // If we were trying to open AI tutor, open it
+  if (pendingAISubject) { openAILesson(pendingAISubject); pendingAISubject = null; }
+}
+function changeKey() {
+  document.getElementById('apiInput').value = '';
+  document.getElementById('apiErr').style.display = 'none';
+  document.getElementById('apiGate').style.display = 'flex';
+}
+let pendingAISubject = null;
+
+// ── NAVIGATION ──
+const PAGE_NAMES = ['practice','flash','tracker','exam','learn','sheets'];
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach((t, i) => {
+    t.classList.toggle('active', PAGE_NAMES[i] === id);
+  });
+  if (id === 'tracker') renderTracker();
+  if (id === 'flash') initFlashcards();
+}
+
+// ── TIMED MODE ──
+let timedMode = false, timerInterval = null, timerSeconds = 90, timerMax = 90;
+
+function toggleTimedMode() {
+  timedMode = !timedMode;
+  const btn = document.getElementById('timerModeBtn');
+  const bar = document.getElementById('timerBar');
+  if (timedMode) {
+    btn.textContent = '⏱ Timed ON'; btn.style.borderColor='var(--gold)'; btn.style.color='var(--gold)'; btn.style.background='rgba(240,180,41,0.08)';
+    bar.style.display = 'flex'; startQuestionTimer();
+  } else {
+    btn.textContent = '⏱ Timed OFF'; btn.style.borderColor=''; btn.style.color=''; btn.style.background='';
+    bar.style.display = 'none'; clearInterval(timerInterval);
+  }
+}
+function getTimerSeconds() {
+  if (mode==='verbal') return 20;
+  return diff==='easy'?90:diff==='medium'?75:60;
+}
+function startQuestionTimer() {
+  clearInterval(timerInterval);
+  timerMax = getTimerSeconds(); timerSeconds = timerMax; updateTimerDisplay();
+  timerInterval = setInterval(()=>{ timerSeconds--; updateTimerDisplay(); if(timerSeconds<=0){clearInterval(timerInterval);if(!answered)pick(-1);}},1000);
+}
+function updateTimerDisplay() {
+  const m=Math.floor(timerSeconds/60),s=timerSeconds%60;
+  const disp=document.getElementById('timerDisplay'),fill=document.getElementById('timerBarFill');
+  if(!disp)return;
+  disp.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  const pct=Math.max(0,timerSeconds/timerMax*100);
+  fill.style.width=pct+'%';
+  disp.classList.toggle('warning',timerSeconds<=Math.floor(timerMax*.25));
+  fill.className='tc-bar '+(pct>50?'good':pct>25?'warn':'bad');
+}
+
+// ── WEAK SPOT TRACKER ──
+const subtypeStats = {};
+function trackAnswer(subtype, isCorrect) {
+  if(!subtypeStats[subtype]) subtypeStats[subtype]={correct:0,total:0};
+  subtypeStats[subtype].total++;
+  if(isCorrect) subtypeStats[subtype].correct++;
+}
+function renderTracker() {
+  const keys=Object.keys(subtypeStats);
+  const totalDone=Object.values(subtypeStats).reduce((s,v)=>s+v.total,0);
+  if(totalDone<3){document.getElementById('trackerEmpty').style.display='block';document.getElementById('trackerContent').style.display='none';return;}
+  document.getElementById('trackerEmpty').style.display='none';document.getElementById('trackerContent').style.display='block';
+  const totalCorrect=Object.values(subtypeStats).reduce((s,v)=>s+v.correct,0);
+  document.getElementById('trTotal').textContent=totalDone;
+  document.getElementById('trOverall').textContent=Math.round(totalCorrect/totalDone*100)+'%';
+  const sorted=keys.map(k=>({name:k,pct:subtypeStats[k].correct/subtypeStats[k].total})).filter(x=>subtypeStats[x.name].total>=2).sort((a,b)=>b.pct-a.pct);
+  if(sorted.length>0){document.getElementById('trBest').textContent=sorted[0].name;document.getElementById('trWorst').textContent=sorted[sorted.length-1].name;}
+  document.getElementById('trackerGrid').innerHTML=keys.map(k=>{
+    const s=subtypeStats[k],pct=Math.round(s.correct/s.total*100),cls=pct>=70?'good':pct>=50?'warn':'bad';
+    return `<div class="tracker-card"><div class="tc-label">${s.total} answered</div><div class="tc-name">${k}</div><div class="tc-bar-wrap"><div class="tc-bar ${cls}" style="width:${pct}%"></div></div><div class="tc-stat">${pct}% (${s.correct}/${s.total})</div></div>`;
+  }).join('');
+}
+
+// ── FLASHCARDS ──
+const FLASHCARD_DECK=[
+  {word:"ACRIMONY",pos:"noun",def:"Bitterness or ill feeling toward others",hook:"'Acrid' = sharp/bitter smell"},
+  {word:"BANAL",pos:"adjective",def:"So common as to be boring; unoriginal",hook:"Bland + banal = boring"},
+  {word:"CANDOR",pos:"noun",def:"The quality of being open and honest",hook:"Candid camera = unposed, real"},
+  {word:"DEARTH",pos:"noun",def:"A scarcity or lack of something",hook:"'Death' of supply"},
+  {word:"EBULLIENT",pos:"adjective",def:"Overflowing with enthusiasm or excitement",hook:"Like boiling over with energy"},
+  {word:"EQUIVOCAL",pos:"adjective",def:"Open to more than one interpretation; ambiguous",hook:"Equal voices = unclear which"},
+  {word:"FURTIVE",pos:"adjective",def:"Attempting to avoid notice; secretive",hook:"Like a thief sneaking around"},
+  {word:"GREGARIOUS",pos:"adjective",def:"Fond of company; sociable",hook:"Loves being in groups"},
+  {word:"HAPLESS",pos:"adjective",def:"Unfortunate; unlucky",hook:"Hap=luck + less=without"},
+  {word:"IMPETUOUS",pos:"adjective",def:"Acting without thought; impulsive",hook:"Impetus = force/rush forward"},
+  {word:"LOQUACIOUS",pos:"adjective",def:"Tending to talk a great deal; talkative",hook:"Loqu=to speak + ious=full of"},
+  {word:"MENDACIOUS",pos:"adjective",def:"Not telling the truth; lying",hook:"'Mend' a story = make it up"},
+  {word:"NEFARIOUS",pos:"adjective",def:"Wicked or criminal in nature",hook:"Nefarious villain = pure evil"},
+  {word:"OBSEQUIOUS",pos:"adjective",def:"Excessively eager to please or serve",hook:"Yes-man, always agreeing"},
+  {word:"PELLUCID",pos:"adjective",def:"Translucently clear; easily understood",hook:"Lucid = light/clear"},
+  {word:"QUERULOUS",pos:"adjective",def:"Complaining in a petulant or whiny way",hook:"Like a quarrel, always complaining"},
+  {word:"RECALCITRANT",pos:"adjective",def:"Stubbornly resistant to authority",hook:"Kicks back against every rule"},
+  {word:"SAGACIOUS",pos:"adjective",def:"Having good judgment; wise",hook:"Like a sage (wise person)"},
+  {word:"TACITURN",pos:"adjective",def:"Reserved or uncommunicative in speech",hook:"Tacit = silent"},
+  {word:"VERBOSE",pos:"adjective",def:"Using more words than needed",hook:"Verb-ose = too many words"},
+  {word:"ACUMEN",pos:"noun",def:"Ability to make good judgments quickly",hook:"Sharp mind, like a needle"},
+  {word:"BENEVOLENT",pos:"adjective",def:"Well-meaning and kindly",hook:"Bene=good, vol=wish"},
+  {word:"CACOPHONY",pos:"noun",def:"A harsh, discordant mixture of sounds",hook:"Caco=bad + phon=sound"},
+  {word:"DELETERIOUS",pos:"adjective",def:"Causing harm or damage",hook:"Delete = remove/destroy"},
+  {word:"EPHEMERAL",pos:"adjective",def:"Lasting for a very short time",hook:"Greek: lasting only a day"},
+  {word:"FASTIDIOUS",pos:"adjective",def:"Very attentive to accuracy and detail",hook:"Fussy about every tiny detail"},
+  {word:"GARRULOUS",pos:"adjective",def:"Excessively talkative, especially trivially",hook:"More talkative than loquacious"},
+  {word:"HEGEMONY",pos:"noun",def:"Leadership or dominance over others",hook:"Heg=to lead (Greek)"},
+  {word:"ICONOCLAST",pos:"noun",def:"A person who attacks cherished beliefs",hook:"Icon=image + clast=breaker"},
+  {word:"LACONIC",pos:"adjective",def:"Brief and concise in speech",hook:"Sparta (Laconia) = blunt speech"},
+  {word:"MALEVOLENT",pos:"adjective",def:"Wishing evil to others",hook:"Mali=bad + vol=wish"},
+  {word:"NONCHALANT",pos:"adjective",def:"Feeling or appearing casually calm",hook:"Non+chaloir=not caring"},
+  {word:"OSTENTATIOUS",pos:"adjective",def:"Designed to impress; showy",hook:"Overly flashy to show off"},
+  {word:"PERFIDIOUS",pos:"adjective",def:"Guilty of betrayal; treacherous",hook:"Perfidia=faithlessness"},
+  {word:"PLACID",pos:"adjective",def:"Not easily upset; calm",hook:"Placid lake = still and peaceful"},
+  {word:"SYCOPHANT",pos:"noun",def:"A person who flatters to gain favor",hook:"Always telling the boss what they want to hear"},
+  {word:"TRUCULENT",pos:"adjective",def:"Eager or quick to argue or fight",hook:"Trux=fierce (Latin)"},
+  {word:"VENERATE",pos:"verb",def:"To regard with great respect",hook:"Vener=worship (like Venus)"},
+  {word:"WANE",pos:"verb",def:"To decrease in size, strength or power",hook:"Opposite of wax; moon wanes"},
+  {word:"ZEALOUS",pos:"adjective",def:"Passionate and enthusiastic",hook:"Zeal=intense passion"},
+];
+let fcDeck=[],fcIndex=0,fcCategory='all',fcKnown=new Set(),fcReview=new Set();
+function setFCCat(cat,el){fcCategory=cat;document.querySelectorAll('#fcCatPills .pill').forEach(p=>p.classList.remove('active','gold'));el.classList.add('active','gold');initFlashcards();}
+function initFlashcards(){
+  if(fcCategory==='known') fcDeck=FLASHCARD_DECK.filter((_,i)=>fcKnown.has(i));
+  else if(fcCategory==='review') fcDeck=FLASHCARD_DECK.filter((_,i)=>fcReview.has(i));
+  else fcDeck=[...FLASHCARD_DECK].sort(()=>Math.random()-.5);
+  fcIndex=0; if(fcDeck.length===0){document.getElementById('fcWord').textContent='No cards yet';return;} showFCCard();
+}
+function showFCCard(){
+  if(fcIndex>=fcDeck.length){document.getElementById('fcWord').textContent='🎉 Done!';document.getElementById('fcDef').textContent='You went through all cards!';document.getElementById('fcPos').textContent='';document.getElementById('fcPos2').textContent='';document.getElementById('fcHook').textContent='';updateFCProgress();return;}
+  const card=fcDeck[fcIndex];
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fcPos').textContent=card.pos; document.getElementById('fcPos2').textContent=card.pos;
+  document.getElementById('fcWord').textContent=card.word; document.getElementById('fcDef').textContent=card.def;
+  document.getElementById('fcHook').textContent='💡 '+card.hook; updateFCProgress();
+}
+function flipCard(){document.getElementById('flashcard').classList.toggle('flipped');}
+function nextCard(){fcIndex++;showFCCard();}
+function markCard(status){
+  const idx=FLASHCARD_DECK.indexOf(fcDeck[fcIndex]);
+  if(status==='known'){fcKnown.add(idx);fcReview.delete(idx);}else{fcReview.add(idx);fcKnown.delete(idx);}
+  updateFCProgress(); fcIndex++; showFCCard();
+}
+function updateFCProgress(){
+  document.getElementById('fcKnownCount').textContent=fcKnown.size;
+  document.getElementById('fcReviewCount').textContent=fcReview.size;
+  document.getElementById('fcLeftCount').textContent=Math.max(0,fcDeck.length-fcIndex);
+  document.getElementById('fcProgress').textContent=fcDeck.length>0?`${Math.min(fcIndex+1,fcDeck.length)} / ${fcDeck.length}`:'';
+}
+
+// ── MOCK EXAM ──
+const EXAM_SECTIONS=[
+  {name:'Arithmetic Reasoning',icon:'🔢',bank:'math_easy',time:29*60,count:15},
+  {name:'Math Knowledge',icon:'📐',bank:'math_medium',time:22*60,count:15},
+  {name:'Word Knowledge',icon:'📖',bank:'verbal_easy',time:5*60,count:15},
+  {name:'Verbal Analogies',icon:'🔗',bank:'verbal_medium',time:8*60,count:15},
+];
+let examSection=0,examQIndex=0,examAnswers=[],examSectionResults=[],examTimerSecs=0,examTimerInt=null,examSectionQ=[];
+function startExam(){
+  examSection=0;examSectionResults=[];
+  document.getElementById('examMenu').style.display='none';
+  document.getElementById('examActive').style.display='block';
+  document.getElementById('examResults').style.display='none';
+  loadExamSection();
+}
+function loadExamSection(){
+  const sec=EXAM_SECTIONS[examSection];
+  const shuffled=[...(QUESTION_BANK[sec.bank]||[])].sort(()=>Math.random()-.5);
+  examSectionQ=shuffled.slice(0,sec.count); examQIndex=0; examAnswers=[];
+  document.getElementById('examSecName').textContent=sec.name;
+  examTimerSecs=sec.time; clearInterval(examTimerInt); updateExamTimer();
+  examTimerInt=setInterval(()=>{examTimerSecs--;updateExamTimer();if(examTimerSecs<=0){clearInterval(examTimerInt);finishSection();}},1000);
+  showExamQ();
+}
+function updateExamTimer(){
+  const m=Math.floor(examTimerSecs/60),s=examTimerSecs%60,el=document.getElementById('examTimer');
+  if(!el)return; el.textContent=`${m}:${s.toString().padStart(2,'0')}`; el.classList.toggle('warn',examTimerSecs<=60);
+}
+function showExamQ(){
+  const sec=EXAM_SECTIONS[examSection];
+  document.getElementById('examQNum').textContent=`${examQIndex+1}/${sec.count}`;
+  document.getElementById('examScore').textContent=examAnswers.length>0?Math.round(examAnswers.filter(Boolean).length/examAnswers.length*100)+'%':'—';
+  const q=examSectionQ[examQIndex]; if(!q){finishSection();return;}
+  const L=['A','B','C','D'];
+  document.getElementById('examQArea').innerHTML=`<div class="q-card" id="examCard"><div class="q-top"><span class="q-tag">${q.subtype}</span><span class="q-num">${examQIndex+1} of ${sec.count}</span></div><div class="q-text">${q.question}</div><div class="opts">${q.options.map((o,i)=>`<button class="opt" id="eopt${i}" onclick="pickExam(${i})"><span class="opt-l">${L[i]}</span><span>${o.replace(/^[A-D]\)\s*/,'')}</span></button>`).join('')}</div><div class="fb" id="examFb"><div class="fb-title" id="examFbTitle"></div><div id="examFbBody"></div></div></div>`;
+  document.getElementById('examActRow').style.display='none';
+}
+function pickExam(i){
+  const q=examSectionQ[examQIndex],isOk=i===q.answer; examAnswers.push(isOk);
+  document.querySelectorAll('.opt').forEach((b,idx)=>{b.disabled=true;if(idx===i&&isOk)b.classList.add('ok');else if(idx===i&&!isOk)b.classList.add('bad');else if(idx===q.answer)b.classList.add('show-ok');});
+  const fb=document.getElementById('examFb'); fb.classList.add('show',isOk?'ok':'bad');
+  document.getElementById('examFbTitle').textContent=isOk?'✓ Correct!':'✗ Incorrect';
+  document.getElementById('examFbBody').textContent=q.explanation;
+  document.getElementById('examActRow').style.display='flex';
+  document.getElementById('examScore').textContent=Math.round(examAnswers.filter(Boolean).length/examAnswers.length*100)+'%';
+}
+function nextExamQ(){examQIndex++;if(examQIndex>=examSectionQ.length){finishSection();return;}showExamQ();}
+function finishSection(){
+  clearInterval(examTimerInt);
+  const correct=examAnswers.filter(Boolean).length,total=examAnswers.length||examSectionQ.length;
+  examSectionResults.push({...EXAM_SECTIONS[examSection],correct,total});
+  examSection++;
+  if(examSection>=EXAM_SECTIONS.length){showExamResults();}
+  else{
+    document.getElementById('examQArea').innerHTML=`<div class="loading" style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:12px">${correct>=Math.round(total*.7)?'✅':'⚠️'}</div><div style="font-size:20px;color:var(--white);margin-bottom:8px">${examSectionResults[examSectionResults.length-1].name} done</div><div style="color:var(--muted);margin-bottom:24px">${correct} / ${total} correct</div><button class="btn btn-gold" onclick="loadExamSection()">Next Section →</button></div>`;
+    document.getElementById('examActRow').style.display='none';
+  }
+}
+function showExamResults(){
+  document.getElementById('examActive').style.display='none';document.getElementById('examResults').style.display='block';
+  const totalC=examSectionResults.reduce((s,r)=>s+r.correct,0),totalQ=examSectionResults.reduce((s,r)=>s+r.total,0),pct=Math.round(totalC/totalQ*100);
+  document.getElementById('examFinalPct').textContent=pct+'%';
+  document.getElementById('examGrade').textContent=pct>=80?'🎯 Excellent — AFOQT ready!':pct>=65?'📈 Good progress — keep studying!':'💪 Keep grinding — you\'ll get there!';
+  document.getElementById('examSecResults').innerHTML=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px">Section Breakdown</div>${examSectionResults.map(r=>{const p=Math.round(r.correct/r.total*100);return`<div class="esr-row"><div>${r.icon} ${r.name}</div><div class="esr-score ${p>=70?'pass':'fail'}">${r.correct}/${r.total} (${p}%)</div></div>`;}).join('')}`;
+}
+function resetExam(){document.getElementById('examMenu').style.display='block';document.getElementById('examActive').style.display='none';document.getElementById('examResults').style.display='none';clearInterval(examTimerInt);}
+
+// ══════════════════════════════════════════════════════
+//  AFOQT QUESTION BANK  —  150+ questions, zero repeats
+// ══════════════════════════════════════════════════════
+const QUESTION_BANK = {
+math_easy:[
+  {type:"Math",subtype:"Arithmetic",question:"A store sells apples for $0.75 each. How much will 8 apples cost?",options:["A) $5.50","B) $6.00","C) $6.50","D) $7.00"],answer:1,explanation:"0.75 × 8 = $6.00",steps:["Multiply price per apple by quantity","0.75 × 8 = 6.00","Answer: $6.00"],hint:"Multiply unit price by quantity."},
+  {type:"Math",subtype:"Fractions",question:"What is ½ + ⅓?",options:["A) 2/5","B) 4/6","C) 5/6","D) 3/5"],answer:2,explanation:"½ + ⅓ = 3/6 + 2/6 = 5/6",steps:["LCD of 2 and 3 is 6","½ = 3/6 and ⅓ = 2/6","3/6 + 2/6 = 5/6"],hint:"Find the least common denominator first."},
+  {type:"Math",subtype:"Percentages",question:"What is 25% of 80?",options:["A) 15","B) 20","C) 25","D) 30"],answer:1,explanation:"25% of 80 = 0.25 × 80 = 20",steps:["Convert 25% to decimal: 0.25","Multiply: 0.25 × 80 = 20"],hint:"25% = one quarter. Divide 80 by 4."},
+  {type:"Math",subtype:"Ratios",question:"A recipe calls for 2 cups of flour for every 3 cups of sugar. If you use 6 cups of flour, how many cups of sugar do you need?",options:["A) 7","B) 8","C) 9","D) 10"],answer:2,explanation:"2/3 = 6/x → x = 9",steps:["Set up proportion: 2/3 = 6/x","Cross multiply: 2x = 18","x = 9"],hint:"Set up a proportion and cross multiply."},
+  {type:"Math",subtype:"Speed",question:"A car travels 240 miles in 4 hours. What is its average speed in mph?",options:["A) 50","B) 55","C) 60","D) 65"],answer:2,explanation:"Speed = Distance ÷ Time = 240 ÷ 4 = 60 mph",steps:["Formula: Speed = Distance ÷ Time","240 ÷ 4 = 60 mph"],hint:"Speed = Distance divided by Time."},
+  {type:"Math",subtype:"Decimals",question:"What is 3.6 × 4?",options:["A) 12.4","B) 13.6","C) 14.4","D) 15.2"],answer:2,explanation:"3.6 × 4 = 14.4",steps:["Multiply 36 × 4 = 144","Place decimal: 14.4"],hint:"Ignore the decimal, multiply, then replace it."},
+  {type:"Math",subtype:"Fractions",question:"What is ¾ of 48?",options:["A) 30","B) 32","C) 36","D) 40"],answer:2,explanation:"¾ × 48 = 3 × 12 = 36",steps:["Divide by denominator: 48 ÷ 4 = 12","Multiply by numerator: 12 × 3 = 36"],hint:"Divide by the bottom, multiply by the top."},
+  {type:"Math",subtype:"Averages",question:"What is the average of 12, 18, 24, and 30?",options:["A) 18","B) 20","C) 21","D) 22"],answer:2,explanation:"(12+18+24+30) ÷ 4 = 84 ÷ 4 = 21",steps:["Add: 12+18+24+30 = 84","Divide by 4: 84 ÷ 4 = 21"],hint:"Add all numbers, then divide by how many there are."},
+  {type:"Math",subtype:"Percentages",question:"A shirt costs $40 and is on sale for 20% off. What is the sale price?",options:["A) $28","B) $30","C) $32","D) $34"],answer:2,explanation:"20% of $40 = $8. $40 - $8 = $32",steps:["Find 20%: 0.20 × 40 = $8","Subtract: $40 - $8 = $32"],hint:"Find the discount first, then subtract."},
+  {type:"Math",subtype:"Arithmetic",question:"John has 3 times as many marbles as Sue. If Sue has 15 marbles, how many does John have?",options:["A) 30","B) 40","C) 45","D) 50"],answer:2,explanation:"3 × 15 = 45",steps:["John = 3 × Sue's amount","3 × 15 = 45"],hint:"Multiply Sue's amount by 3."},
+  {type:"Math",subtype:"Fractions",question:"Which fraction is the largest: ⅔, ¾, ⅗, or 5/8?",options:["A) ⅔","B) ¾","C) ⅗","D) 5/8"],answer:1,explanation:"¾ = 0.75 is the largest. ⅔≈0.667, ⅗=0.6, 5/8=0.625",steps:["Convert each to decimal","⅔≈0.667, ¾=0.75, ⅗=0.60, 5/8=0.625","0.75 is largest → ¾"],hint:"Convert all fractions to decimals to compare."},
+  {type:"Math",subtype:"Ratios",question:"The ratio of boys to girls in a class is 3:5. If there are 24 students total, how many are girls?",options:["A) 9","B) 12","C) 15","D) 18"],answer:2,explanation:"Total parts = 8. Each part = 3. Girls = 5 × 3 = 15",steps:["Total parts: 3+5 = 8","Each part = 24 ÷ 8 = 3","Girls = 5 × 3 = 15"],hint:"Divide total by sum of ratio parts."},
+  {type:"Math",subtype:"Arithmetic",question:"A worker earns $12 per hour and works 40 hours. How much does she earn?",options:["A) $420","B) $440","C) $460","D) $480"],answer:3,explanation:"12 × 40 = $480",steps:["Multiply rate by hours","$12 × 40 = $480"],hint:"Hourly rate times number of hours."},
+  {type:"Math",subtype:"Decimals",question:"What is 0.6 × 0.4?",options:["A) 0.024","B) 0.24","C) 2.4","D) 24"],answer:1,explanation:"6 × 4 = 24, two decimal places → 0.24",steps:["Multiply 6 × 4 = 24","Total decimal places: 1+1 = 2","Result: 0.24"],hint:"Count total decimal places in both numbers combined."},
+  {type:"Math",subtype:"Averages",question:"Five students scored 70, 75, 80, 85, and 90. What is their average?",options:["A) 78","B) 80","C) 82","D) 84"],answer:1,explanation:"(70+75+80+85+90) ÷ 5 = 400 ÷ 5 = 80",steps:["Sum: 70+75+80+85+90 = 400","Average: 400 ÷ 5 = 80"],hint:"Add them all and divide by 5."},
+  {type:"Math",subtype:"Arithmetic",question:"A box holds 12 cans. How many boxes are needed for 84 cans?",options:["A) 5","B) 6","C) 7","D) 8"],answer:2,explanation:"84 ÷ 12 = 7 boxes",steps:["Divide total cans by cans per box","84 ÷ 12 = 7"],hint:"Divide total needed by how many fit per box."},
+  {type:"Math",subtype:"Fractions",question:"What is 2⅓ + 1½?",options:["A) 3⅔","B) 3⅚","C) 4⅙","D) 4⅓"],answer:1,explanation:"2⅓ + 1½ = 7/3 + 3/2 = 14/6 + 9/6 = 23/6 = 3⅚",steps:["Convert: 2⅓ = 7/3, 1½ = 3/2","LCD is 6: 14/6 + 9/6 = 23/6","Convert back: 3 and 5/6 = 3⅚"],hint:"Convert to improper fractions, find LCD, then add."},
+  {type:"Math",subtype:"Percentages",question:"15 is what percent of 60?",options:["A) 20%","B) 25%","C) 30%","D) 40%"],answer:1,explanation:"15/60 × 100 = 25%",steps:["Divide part by whole: 15 ÷ 60 = 0.25","Multiply by 100: 25%"],hint:"Divide the part by the whole, then multiply by 100."},
+  {type:"Math",subtype:"Speed",question:"A cyclist rides at 15 mph for 2 hours. How far does she travel?",options:["A) 25 miles","B) 28 miles","C) 30 miles","D) 32 miles"],answer:2,explanation:"Distance = Rate × Time = 15 × 2 = 30 miles",steps:["Formula: Distance = Rate × Time","15 × 2 = 30 miles"],hint:"Distance = Speed multiplied by Time."},
+  {type:"Math",subtype:"Arithmetic",question:"A pizza is cut into 8 equal slices. If 3 people each eat 2 slices, how many slices remain?",options:["A) 1","B) 2","C) 3","D) 4"],answer:1,explanation:"3 people × 2 slices = 6 eaten. 8 - 6 = 2 remain.",steps:["Total eaten: 3 × 2 = 6 slices","Remaining: 8 - 6 = 2 slices"],hint:"Find how many were eaten first, then subtract."},
+],
+math_medium:[
+  {type:"Math",subtype:"Algebra",question:"Solve for x: 3x - 7 = 14",options:["A) 5","B) 6","C) 7","D) 8"],answer:2,explanation:"3x = 21, x = 7",steps:["Add 7 to both sides: 3x = 21","Divide by 3: x = 7"],hint:"Add 7 to both sides first."},
+  {type:"Math",subtype:"Algebra",question:"If 2x + 5 = 17, what is the value of 4x?",options:["A) 12","B) 20","C) 24","D) 28"],answer:2,explanation:"2x = 12, x = 6. Then 4x = 24.",steps:["Subtract 5: 2x = 12","x = 6","4x = 24"],hint:"Find x first, then calculate 4x."},
+  {type:"Math",subtype:"Geometry",question:"What is the area of a triangle with base 10 and height 6?",options:["A) 24","B) 28","C) 30","D) 32"],answer:2,explanation:"Area = ½ × 10 × 6 = 30",steps:["Formula: Area = ½ × base × height","½ × 10 × 6 = 30"],hint:"Area of a triangle = half of base times height."},
+  {type:"Math",subtype:"Percent Change",question:"A stock rises from $50 to $65. What is the percent increase?",options:["A) 20%","B) 25%","C) 30%","D) 35%"],answer:2,explanation:"(65-50)/50 × 100 = 30%",steps:["Change: 65-50 = 15","% = 15/50 × 100 = 30%"],hint:"% change = (new − old) ÷ old × 100"},
+  {type:"Math",subtype:"Probability",question:"A bag has 3 red, 4 blue, and 5 green marbles. What is the probability of picking blue?",options:["A) 1/3","B) 1/4","C) 1/5","D) 1/6"],answer:0,explanation:"P(blue) = 4/12 = 1/3",steps:["Total: 3+4+5 = 12 marbles","P(blue) = 4/12 = 1/3"],hint:"Probability = favorable ÷ total outcomes."},
+  {type:"Math",subtype:"Rate/Time",question:"A train at 80 mph needs to travel 200 miles. How long will it take?",options:["A) 2 hours","B) 2.5 hours","C) 3 hours","D) 3.5 hours"],answer:1,explanation:"Time = 200 ÷ 80 = 2.5 hours",steps:["Formula: Time = Distance ÷ Rate","200 ÷ 80 = 2.5 hours"],hint:"Time = Distance divided by Rate."},
+  {type:"Math",subtype:"Geometry",question:"What is the circumference of a circle with radius 7? (π ≈ 3.14)",options:["A) 21.98","B) 43.96","C) 153.86","D) 49"],answer:1,explanation:"C = 2 × 3.14 × 7 = 43.96",steps:["Formula: C = 2πr","2 × 3.14 × 7 = 43.96"],hint:"Circumference = 2 × π × radius."},
+  {type:"Math",subtype:"Algebra",question:"If y = 3x + 2 and x = 4, what is y?",options:["A) 12","B) 13","C) 14","D) 15"],answer:2,explanation:"y = 3(4) + 2 = 14",steps:["Substitute x = 4","y = 12 + 2 = 14"],hint:"Plug in x = 4 and simplify."},
+  {type:"Math",subtype:"Averages",question:"The average of 5 numbers is 18. Four are 12, 15, 20, 24. What is the fifth?",options:["A) 17","B) 18","C) 19","D) 21"],answer:2,explanation:"Total = 90. Known sum = 71. Fifth = 19.",steps:["Total = 18 × 5 = 90","Known sum: 12+15+20+24 = 71","Fifth = 90 - 71 = 19"],hint:"Total sum = average × count. Then subtract known values."},
+  {type:"Math",subtype:"Percent Change",question:"A population drops from 2,000 to 1,600. What is the percent decrease?",options:["A) 15%","B) 20%","C) 25%","D) 30%"],answer:1,explanation:"400/2000 × 100 = 20%",steps:["Change: 2000 - 1600 = 400","% = 400/2000 × 100 = 20%"],hint:"% decrease = (old − new) ÷ old × 100"},
+  {type:"Math",subtype:"Geometry",question:"A rectangular room is 12 ft long and 9 ft wide. What is its area?",options:["A) 96 sq ft","B) 98 sq ft","C) 108 sq ft","D) 112 sq ft"],answer:2,explanation:"Area = 12 × 9 = 108 sq ft",steps:["Area = length × width","12 × 9 = 108"],hint:"Area of a rectangle = length times width."},
+  {type:"Math",subtype:"Algebra",question:"Solve: 2(x + 4) = 22",options:["A) 5","B) 6","C) 7","D) 9"],answer:2,explanation:"2x + 8 = 22, 2x = 14, x = 7",steps:["Distribute: 2x + 8 = 22","Subtract 8: 2x = 14","Divide: x = 7"],hint:"Distribute the 2 first, then solve."},
+  {type:"Math",subtype:"Word Problem",question:"A tank holds 120 gallons and is ⅔ full. How many gallons are needed to fill it?",options:["A) 30","B) 35","C) 40","D) 45"],answer:2,explanation:"⅔ × 120 = 80 in tank. 120 - 80 = 40 needed.",steps:["Current: ⅔ × 120 = 80","Space remaining: 120 - 80 = 40"],hint:"Find what's already there, then subtract from total."},
+  {type:"Math",subtype:"Probability",question:"You flip a coin twice. What is the probability of heads both times?",options:["A) 1/2","B) 1/3","C) 1/4","D) 1/6"],answer:2,explanation:"½ × ½ = ¼",steps:["P(heads) = 1/2","Multiply independent events: ½ × ½ = ¼"],hint:"Multiply the probability of each flip."},
+  {type:"Math",subtype:"Rate/Time",question:"Two cars leave the same point going opposite directions at 50 mph and 60 mph. How far apart after 2 hours?",options:["A) 180","B) 200","C) 220","D) 240"],answer:2,explanation:"100 + 120 = 220 miles",steps:["Car 1: 50 × 2 = 100 miles","Car 2: 60 × 2 = 120 miles","Total: 220 miles"],hint:"Find each car's distance, then add (they go opposite ways)."},
+  {type:"Math",subtype:"Geometry",question:"What is the area of a circle with radius 5? (π ≈ 3.14)",options:["A) 31.4","B) 62.8","C) 78.5","D) 94.2"],answer:2,explanation:"A = πr² = 3.14 × 25 = 78.5",steps:["Formula: A = πr²","r² = 25","3.14 × 25 = 78.5"],hint:"Area = π times radius squared."},
+  {type:"Math",subtype:"Word Problem",question:"Sam earns $8/hour and worked 35 hours. He spent ¼ of his earnings. How much does he have left?",options:["A) $180","B) $195","C) $200","D) $210"],answer:3,explanation:"8 × 35 = $280. ¼ of 280 = $70 spent. $280 - $70 = $210.",steps:["Total earned: 8 × 35 = $280","Amount spent: 280 × ¼ = $70","Remaining: 280 - 70 = $210"],hint:"Calculate total earnings first, then find what remains after spending ¼."},
+  {type:"Math",subtype:"Algebra",question:"If 5y - 3 = 2y + 9, what is y?",options:["A) 3","B) 4","C) 5","D) 6"],answer:1,explanation:"3y = 12, y = 4",steps:["Subtract 2y: 3y - 3 = 9","Add 3: 3y = 12","Divide: y = 4"],hint:"Get all y terms on one side, numbers on the other."},
+  {type:"Math",subtype:"Percent",question:"A car's price increased from $20,000 to $23,000. What is the percent increase?",options:["A) 10%","B) 12%","C) 15%","D) 18%"],answer:2,explanation:"3000/20000 × 100 = 15%",steps:["Change: 23000 - 20000 = 3000","% = 3000/20000 × 100 = 15%"],hint:"Divide the increase by the original price."},
+  {type:"Math",subtype:"Geometry",question:"A right triangle has legs of length 6 and 8. What is the hypotenuse?",options:["A) 9","B) 10","C) 11","D) 12"],answer:1,explanation:"6² + 8² = 36 + 64 = 100. √100 = 10",steps:["a² + b² = c²","36 + 64 = 100","√100 = 10"],hint:"This is a common 3-4-5 triple scaled up."},
+  {type:"Math",subtype:"Word Problem",question:"Maria can paint a fence in 4 hours. Tom can do it in 6 hours. Working together, how long will it take?",options:["A) 2.0 hours","B) 2.4 hours","C) 3.0 hours","D) 3.5 hours"],answer:1,explanation:"Rate = 1/4 + 1/6 = 3/12 + 2/12 = 5/12. Time = 12/5 = 2.4 hrs",steps:["Maria's rate: 1/4 per hour","Tom's rate: 1/6 per hour","Combined: 1/4 + 1/6 = 5/12","Time = 12/5 = 2.4 hours"],hint:"Add their individual rates. Time = 1 ÷ combined rate."},
+],
+math_hard:[
+  {type:"Math",subtype:"Quadratics",question:"What are the solutions of x² - 5x + 6 = 0?",options:["A) x=1, x=6","B) x=2, x=3","C) x=-2, x=-3","D) x=-1, x=6"],answer:1,explanation:"Factor: (x-2)(x-3)=0, x=2 or x=3",steps:["Find numbers multiplying to 6, adding to -5: -2 and -3","Factor: (x-2)(x-3) = 0","x = 2 or x = 3"],hint:"Find two numbers that multiply to 6 and add to -5."},
+  {type:"Math",subtype:"Systems",question:"Solve: x + y = 10 and x - y = 4",options:["A) x=6,y=4","B) x=7,y=3","C) x=8,y=2","D) x=5,y=5"],answer:1,explanation:"Add: 2x=14, x=7. y=3",steps:["Add equations: 2x = 14","x = 7","Substitute: y = 3"],hint:"Add the two equations together to eliminate y."},
+  {type:"Math",subtype:"Exponents",question:"Simplify: (2³)² × 2",options:["A) 2⁶","B) 2⁷","C) 2⁸","D) 2⁹"],answer:1,explanation:"(2³)² = 2⁶. 2⁶ × 2¹ = 2⁷",steps:["(2³)² = 2^6 (multiply exponents)","2⁶ × 2¹ = 2^7 (add exponents)"],hint:"(xᵃ)ᵇ = xᵃᵇ and xᵃ×xᵇ = xᵃ⁺ᵇ"},
+  {type:"Math",subtype:"Geometry",question:"A right triangle has legs of 5 and 12. What is the hypotenuse?",options:["A) 11","B) 13","C) 14","D) 15"],answer:1,explanation:"5²+12²=169. √169=13",steps:["a²+b²=c²","25+144=169","√169=13"],hint:"Memorize: 5-12-13 is a Pythagorean triple."},
+  {type:"Math",subtype:"Number Theory",question:"What is the LCM of 12 and 18?",options:["A) 24","B) 30","C) 36","D) 48"],answer:2,explanation:"Multiples of 18: 18,36. Multiples of 12: 12,24,36. LCM=36.",steps:["Multiples of 12: 12,24,36","Multiples of 18: 18,36","First match: 36"],hint:"List multiples of each until you find a common one."},
+  {type:"Math",subtype:"Quadratics",question:"Solve: x² + 4x - 5 = 0",options:["A) x=1, x=-5","B) x=-1, x=5","C) x=2, x=-5","D) x=1, x=4"],answer:0,explanation:"(x+5)(x-1)=0 → x=-5 or x=1",steps:["Numbers multiplying to -5, adding to +4: +5 and -1","Factor: (x+5)(x-1)=0","x=-5 or x=1"],hint:"Find two numbers that multiply to -5 and add to +4."},
+  {type:"Math",subtype:"Exponents",question:"What is 4^(3/2)?",options:["A) 6","B) 8","C) 12","D) 16"],answer:1,explanation:"(√4)³ = 2³ = 8",steps:["4^(3/2) = (4^½)³","√4 = 2","2³ = 8"],hint:"x^(m/n) = (nth root of x)^m"},
+  {type:"Math",subtype:"Systems",question:"If 3x + 2y = 16 and x - y = 2, what is x?",options:["A) 3","B) 4","C) 5","D) 6"],answer:1,explanation:"x=y+2. 3(y+2)+2y=16. 5y=10, y=2. x=4.",steps:["From eq2: x = y+2","Substitute: 3(y+2)+2y = 16","5y = 10, y = 2, x = 4"],hint:"Solve one equation for x and substitute."},
+  {type:"Math",subtype:"Geometry",question:"Volume of a cylinder with radius 3 and height 5? (π ≈ 3.14)",options:["A) 94.2","B) 113.1","C) 141.3","D) 188.4"],answer:2,explanation:"V = π×9×5 = 141.3",steps:["V = πr²h","r² = 9","3.14 × 9 × 5 = 141.3"],hint:"V = π × r² × height"},
+  {type:"Math",subtype:"Word Problem",question:"A pipe fills a tank in 6 hours. A drain empties it in 9 hours. With both open, how long to fill?",options:["A) 12 hrs","B) 15 hrs","C) 18 hrs","D) 21 hrs"],answer:2,explanation:"Net rate = 1/6 - 1/9 = 1/18. Time = 18 hrs.",steps:["Fill rate: 1/6/hr","Drain rate: 1/9/hr","Net: 1/6-1/9 = 3/18-2/18 = 1/18","Time = 18 hrs"],hint:"Subtract the drain rate from the fill rate."},
+  {type:"Math",subtype:"Number Theory",question:"What is the GCF of 48 and 36?",options:["A) 6","B) 8","C) 12","D) 18"],answer:2,explanation:"Factors of both include 12 as the largest.",steps:["Factors of 48: 1,2,3,4,6,8,12,16,24,48","Factors of 36: 1,2,3,4,6,9,12,18,36","GCF = 12"],hint:"List factors of each and find the biggest one they share."},
+  {type:"Math",subtype:"Sequences",question:"Next term in: 2, 6, 18, 54, ___",options:["A) 108","B) 144","C) 162","D) 216"],answer:2,explanation:"Each term × 3. 54 × 3 = 162.",steps:["Pattern: multiply by 3 each time","54 × 3 = 162"],hint:"How does each term relate to the previous one?"},
+  {type:"Math",subtype:"Algebra",question:"If f(x) = x² - 3x + 2, what is f(4)?",options:["A) 4","B) 5","C) 6","D) 7"],answer:2,explanation:"4² - 3(4) + 2 = 16 - 12 + 2 = 6",steps:["Substitute x=4","16 - 12 + 2 = 6"],hint:"Plug x=4 into the function and calculate."},
+  {type:"Math",subtype:"Geometry",question:"A sphere has radius 3. What is its volume? (π ≈ 3.14)",options:["A) 75.4","B) 100.5","C) 113.1","D) 150.7"],answer:2,explanation:"V = 4/3 × π × 27 = 113.1",steps:["V = (4/3)πr³","r³ = 27","(4/3) × 3.14 × 27 = 113.1"],hint:"V = 4/3 × π × r³"},
+  {type:"Math",subtype:"Quadratics",question:"The product of two consecutive integers is 72. What are they?",options:["A) 7 and 8","B) 8 and 9","C) 9 and 10","D) 6 and 7"],answer:1,explanation:"8 × 9 = 72",steps:["Try consecutive pairs near √72 ≈ 8.5","8 × 9 = 72 ✓"],hint:"Find the square root of 72 to get close to the answer."},
+  {type:"Math",subtype:"Coordinate",question:"What is the slope of a line passing through (2, 3) and (6, 11)?",options:["A) 1","B) 2","C) 3","D) 4"],answer:1,explanation:"Slope = (11-3)/(6-2) = 8/4 = 2",steps:["Formula: m = (y₂-y₁)/(x₂-x₁)","m = (11-3)/(6-2) = 8/4 = 2"],hint:"Slope = rise over run = (y change) ÷ (x change)."},
+],
+verbal_easy:[
+  {type:"Verbal",subtype:"Synonyms",question:"HAPPY most nearly means:",options:["A) Sad","B) Angry","C) Joyful","D) Tired"],answer:2,explanation:"Happy and joyful both mean feeling pleasure and contentment.",steps:["Happy = feeling pleasure","Joyful = feeling great happiness","They are synonyms"],hint:"Think of a word that describes the same positive feeling."},
+  {type:"Verbal",subtype:"Antonyms",question:"ANCIENT most nearly means the OPPOSITE of:",options:["A) Old","B) Modern","C) Wise","D) Historical"],answer:1,explanation:"Ancient = very old. Its opposite is modern.",steps:["Ancient = very old","Opposite = new or current","Modern is the antonym"],hint:"Ancient means extremely old. What is the opposite of old?"},
+  {type:"Verbal",subtype:"Analogies",question:"FINGER : HAND :: TOE : ___",options:["A) Shoe","B) Nail","C) Foot","D) Leg"],answer:2,explanation:"Finger is part of a hand. Toe is part of a foot.",steps:["Finger is PART OF hand","Apply: toe is PART OF ___","Toe → Foot"],hint:"What body part is a toe part of?"},
+  {type:"Verbal",subtype:"Synonyms",question:"BRAVE most nearly means:",options:["A) Afraid","B) Courageous","C) Strong","D) Clever"],answer:1,explanation:"Brave and courageous both mean willing to face danger.",steps:["Brave = not afraid to face danger","Courageous = same meaning"],hint:"Think of a word meaning unafraid to face danger."},
+  {type:"Verbal",subtype:"Analogies",question:"CHEF : KITCHEN :: SURGEON : ___",options:["A) Hospital","B) Scalpel","C) Operating Room","D) Medicine"],answer:2,explanation:"Chef works in a kitchen. Surgeon works in an operating room.",steps:["Chef WORKS IN kitchen","Surgeon WORKS IN ___","Operating room"],hint:"Where does a surgeon do their work?"},
+  {type:"Verbal",subtype:"Antonyms",question:"GENEROUS most nearly means the OPPOSITE of:",options:["A) Kind","B) Wealthy","C) Stingy","D) Giving"],answer:2,explanation:"Generous = giving freely. Stingy = unwilling to give.",steps:["Generous = giving willingly","Opposite = not giving","Stingy = unwilling to share"],hint:"Generous means giving a lot. What means giving very little?"},
+  {type:"Verbal",subtype:"Synonyms",question:"SWIFT most nearly means:",options:["A) Strong","B) Fast","C) Smooth","D) Silent"],answer:1,explanation:"Swift means moving with great speed.",steps:["Swift = very quick","Fast = moving quickly","Synonyms"],hint:"Think of a common word for moving quickly."},
+  {type:"Verbal",subtype:"Analogies",question:"HOT : COLD :: DAY : ___",options:["A) Sun","B) Light","C) Night","D) Time"],answer:2,explanation:"Hot is opposite of cold. Day is opposite of night.",steps:["Hot and cold are OPPOSITES","Day and ___ are opposites","Day → Night"],hint:"What is the opposite of day?"},
+  {type:"Verbal",subtype:"Synonyms",question:"DIFFICULT most nearly means:",options:["A) Easy","B) Long","C) Hard","D) Boring"],answer:2,explanation:"Difficult and hard both mean requiring a lot of effort.",steps:["Difficult = requiring effort","Hard = same meaning"],hint:"Think of a one-syllable word meaning the same thing."},
+  {type:"Verbal",subtype:"Antonyms",question:"EXPAND most nearly means the OPPOSITE of:",options:["A) Grow","B) Stretch","C) Shrink","D) Move"],answer:2,explanation:"Expand = grow larger. Shrink = grow smaller.",steps:["Expand = increase in size","Opposite = decrease in size","Shrink"],hint:"Expand means get bigger. What means get smaller?"},
+  {type:"Verbal",subtype:"Analogies",question:"BOOK : LIBRARY :: PAINTING : ___",options:["A) Artist","B) Canvas","C) Museum","D) Color"],answer:2,explanation:"Books are in a library. Paintings are in a museum.",steps:["Books FOUND IN library","Paintings FOUND IN ___","Museum"],hint:"Where do you go to see many paintings on display?"},
+  {type:"Verbal",subtype:"Synonyms",question:"TRANSPARENT most nearly means:",options:["A) Colorful","B) Clear","C) Shiny","D) Thick"],answer:1,explanation:"Transparent means see-through/clear.",steps:["Transparent = letting light pass through","Clear = see-through"],hint:"Think of a glass window — what word describes it?"},
+  {type:"Verbal",subtype:"Antonyms",question:"COMMENCE most nearly means the OPPOSITE of:",options:["A) Begin","B) Continue","C) Conclude","D) Pause"],answer:2,explanation:"Commence = begin. Conclude = end.",steps:["Commence = to start","Opposite = to finish","Conclude"],hint:"Commence means to start. What means to finish?"},
+  {type:"Verbal",subtype:"Analogies",question:"FIRE : HEAT :: ICE : ___",options:["A) Water","B) Snow","C) Cold","D) Freeze"],answer:2,explanation:"Fire produces heat. Ice produces cold.",steps:["Fire PRODUCES heat","Ice PRODUCES ___","Cold"],hint:"What does fire produce? Apply the same to ice."},
+  {type:"Verbal",subtype:"Synonyms",question:"ABUNDANT most nearly means:",options:["A) Scarce","B) Plentiful","C) Small","D) Empty"],answer:1,explanation:"Abundant = existing in large quantities.",steps:["Abundant = more than enough","Plentiful = existing in large amounts"],hint:"Think of a harvest with more than enough food."},
+  {type:"Verbal",subtype:"Antonyms",question:"COWARDLY most nearly means the OPPOSITE of:",options:["A) Timid","B) Scared","C) Brave","D) Weak"],answer:2,explanation:"Cowardly = lacking courage. Brave = having courage.",steps:["Cowardly = not brave","Opposite = having courage","Brave"],hint:"Cowardly means lacking bravery. What means having it?"},
+  {type:"Verbal",subtype:"Analogies",question:"SOLDIER : ARMY :: BEE : ___",options:["A) Honey","B) Flower","C) Hive","D) Swarm"],answer:3,explanation:"A soldier is a member of an army. A bee is a member of a swarm.",steps:["Soldier is a MEMBER OF army","Bee is a MEMBER OF ___","Swarm = group of bees"],hint:"What is the name for a large group of bees?"},
+  {type:"Verbal",subtype:"Synonyms",question:"WEARY most nearly means:",options:["A) Alert","B) Strong","C) Tired","D) Angry"],answer:2,explanation:"Weary means exhausted or very tired.",steps:["Weary = feeling great fatigue","Tired = same meaning"],hint:"Think of how you feel after a very long day."},
+  {type:"Verbal",subtype:"Antonyms",question:"BARREN most nearly means the OPPOSITE of:",options:["A) Empty","B) Dry","C) Fertile","D) Desert"],answer:2,explanation:"Barren = unable to produce. Fertile = highly productive.",steps:["Barren = producing nothing","Opposite = producing a lot","Fertile"],hint:"Barren land grows nothing. What describes land that grows much?"},
+  {type:"Verbal",subtype:"Analogies",question:"AUTHOR : PEN :: PAINTER : ___",options:["A) Canvas","B) Color","C) Brush","D) Art"],answer:2,explanation:"An author uses a pen as their tool. A painter uses a brush.",steps:["Author USES pen (tool)","Painter USES ___","Brush is the painter's primary tool"],hint:"What tool does a painter use the way an author uses a pen?"},
+],
+verbal_medium:[
+  {type:"Verbal",subtype:"Synonyms",question:"LOQUACIOUS most nearly means:",options:["A) Quiet","B) Talkative","C) Angry","D) Confused"],answer:1,explanation:"Loquacious = very talkative. Root: 'loqu' = to speak.",steps:["Root 'loqu' = to speak","-ious = full of","Loquacious = very talkative"],hint:"The root 'loqu' means to speak."},
+  {type:"Verbal",subtype:"Antonyms",question:"BENEVOLENT most nearly means the OPPOSITE of:",options:["A) Kind","B) Generous","C) Malicious","D) Wealthy"],answer:2,explanation:"Benevolent (bene=good) → Malicious (mali=bad).",steps:["Bene = good → benevolent = well-meaning","Malicious = intending harm","They are opposites"],hint:"Bene = good. What root means evil or bad?"},
+  {type:"Verbal",subtype:"Analogies",question:"DOCTOR : STETHOSCOPE :: CARPENTER : ___",options:["A) Wood","B) Hammer","C) House","D) Blueprint"],answer:1,explanation:"Doctor uses stethoscope (tool). Carpenter uses hammer (tool).",steps:["Doctor USES stethoscope as tool","Carpenter USES ___","Hammer is the carpenter's primary tool"],hint:"What is the tool most associated with a carpenter?"},
+  {type:"Verbal",subtype:"Synonyms",question:"TACITURN most nearly means:",options:["A) Loud","B) Reserved","C) Intelligent","D) Friendly"],answer:1,explanation:"Taciturn = habitually silent or reserved.",steps:["Tacit = silent (Latin)","Taciturn = tending to be silent","Best synonym: reserved"],hint:"The root 'tacit' means silent."},
+  {type:"Verbal",subtype:"Analogies",question:"PETAL : FLOWER :: CHAPTER : ___",options:["A) Story","B) Word","C) Book","D) Author"],answer:2,explanation:"Petal is part of a flower. Chapter is part of a book.",steps:["Petal is PART OF flower","Chapter is PART OF ___","Book"],hint:"What is a chapter part of?"},
+  {type:"Verbal",subtype:"Antonyms",question:"PLACID most nearly means the OPPOSITE of:",options:["A) Calm","B) Peaceful","C) Turbulent","D) Serene"],answer:2,explanation:"Placid = calm. Turbulent = chaotic.",steps:["Placid = calm and still","Opposite = chaotic","Turbulent"],hint:"Placid means peaceful and still. What means stormy and chaotic?"},
+  {type:"Verbal",subtype:"Synonyms",question:"CANDID most nearly means:",options:["A) Secretive","B) Honest","C) Careful","D) Polite"],answer:1,explanation:"Candid = truthful and straightforward.",steps:["Candid = direct and honest","Best synonym: honest"],hint:"Think of a candid photo — unposed and real."},
+  {type:"Verbal",subtype:"Analogies",question:"SOLDIER : ARMY :: MUSICIAN : ___",options:["A) Song","B) Instrument","C) Orchestra","D) Concert"],answer:2,explanation:"Soldier is member of army. Musician is member of orchestra.",steps:["Soldier is MEMBER OF army","Musician is MEMBER OF ___","Orchestra"],hint:"What group is formed by many musicians?"},
+  {type:"Verbal",subtype:"Antonyms",question:"VERBOSE most nearly means the OPPOSITE of:",options:["A) Wordy","B) Concise","C) Loud","D) Detailed"],answer:1,explanation:"Verbose = too many words. Concise = few words.",steps:["Verbose = using too many words","Opposite = using few words","Concise"],hint:"Verbose means long-winded. What means brief?"},
+  {type:"Verbal",subtype:"Synonyms",question:"TENACIOUS most nearly means:",options:["A) Weak","B) Persistent","C) Aggressive","D) Flexible"],answer:1,explanation:"Tenacious = holding firmly; persistent.",steps:["Tenacious = gripping tightly","Applied = not giving up","Persistent"],hint:"Think of 'tenacity' — holding on tightly."},
+  {type:"Verbal",subtype:"Analogies",question:"DROUGHT : FAMINE :: FLOOD : ___",options:["A) Rain","B) River","C) Destruction","D) Water"],answer:2,explanation:"Drought causes famine. Flood causes destruction.",steps:["Drought CAUSES famine","Flood CAUSES ___","Destruction"],hint:"What does a flood cause? Match cause-to-effect."},
+  {type:"Verbal",subtype:"Antonyms",question:"PRUDENT most nearly means the OPPOSITE of:",options:["A) Wise","B) Careful","C) Reckless","D) Slow"],answer:2,explanation:"Prudent = careful and wise. Reckless = careless.",steps:["Prudent = good judgment","Opposite = without judgment","Reckless"],hint:"Prudent means wise and careful. What means careless?"},
+  {type:"Verbal",subtype:"Synonyms",question:"FRUGAL most nearly means:",options:["A) Wasteful","B) Thrifty","C) Generous","D) Wealthy"],answer:1,explanation:"Frugal = careful with money, avoiding waste.",steps:["Frugal = not spending unnecessarily","Thrifty = careful with money"],hint:"Think of someone who never wastes money."},
+  {type:"Verbal",subtype:"Analogies",question:"WARM : SCORCHING :: COLD : ___",options:["A) Cool","B) Chilly","C) Freezing","D) Icy"],answer:2,explanation:"Scorching is extreme warm. Freezing is extreme cold.",steps:["Warm → Scorching is an intensification","Apply same to cold","Freezing is extreme cold"],hint:"Scorching is extremely warm. What is extremely cold?"},
+  {type:"Verbal",subtype:"Antonyms",question:"OSTENTATIOUS most nearly means the OPPOSITE of:",options:["A) Showy","B) Flashy","C) Modest","D) Proud"],answer:2,explanation:"Ostentatious = showy and pretentious. Modest = humble.",steps:["Ostentatious = designed to impress","Opposite = not drawing attention","Modest"],hint:"Ostentatious = over-the-top showy. What means simple and humble?"},
+  {type:"Verbal",subtype:"Synonyms",question:"AMBIGUOUS most nearly means:",options:["A) Clear","B) Certain","C) Unclear","D) Complex"],answer:2,explanation:"Ambiguous = open to more than one interpretation; unclear.",steps:["Ambiguous = having multiple meanings","Best synonym: unclear or uncertain"],hint:"Think of a situation that could mean two different things."},
+  {type:"Verbal",subtype:"Antonyms",question:"DILIGENT most nearly means the OPPOSITE of:",options:["A) Hardworking","B) Careful","C) Lazy","D) Focused"],answer:2,explanation:"Diligent = working hard and carefully. Lazy = not working.",steps:["Diligent = steady, careful effort","Opposite = avoiding work","Lazy"],hint:"Diligent means hardworking. What means the opposite?"},
+  {type:"Verbal",subtype:"Analogies",question:"JUDGE : COURTROOM :: PROFESSOR : ___",options:["A) Student","B) Book","C) Classroom","D) School"],answer:2,explanation:"Judge works in a courtroom. Professor works in a classroom.",steps:["Judge WORKS IN courtroom","Professor WORKS IN ___","Classroom"],hint:"Where does a professor do their teaching?"},
+  {type:"Verbal",subtype:"Synonyms",question:"METICULOUS most nearly means:",options:["A) Careless","B) Precise","C) Loud","D) Slow"],answer:1,explanation:"Meticulous = very careful and precise about details.",steps:["Meticulous = paying great attention to detail","Precise = exact and careful"],hint:"Think of someone who triple-checks every detail."},
+  {type:"Verbal",subtype:"Antonyms",question:"TRANSIENT most nearly means the OPPOSITE of:",options:["A) Brief","B) Passing","C) Permanent","D) Moving"],answer:2,explanation:"Transient = lasting only a short time. Permanent = lasting forever.",steps:["Transient = temporary, short-lived","Opposite = long-lasting","Permanent"],hint:"Transient means brief and passing. What means lasting forever?"},
+],
+verbal_hard:[
+  {type:"Verbal",subtype:"Synonyms",question:"RECALCITRANT most nearly means:",options:["A) Obedient","B) Stubborn","C) Forgetful","D) Energetic"],answer:1,explanation:"Recalcitrant = stubbornly resistant to authority.",steps:["Root: to kick back against authority","Meaning: refusing to cooperate","Stubborn"],hint:"Think of someone who 'kicks back' against every rule."},
+  {type:"Verbal",subtype:"Antonyms",question:"SYCOPHANTIC most nearly means the OPPOSITE of:",options:["A) Flattering","B) Fawning","C) Sincere","D) Critical"],answer:3,explanation:"Sycophantic = excessive flattery. Critical = finding fault.",steps:["Sycophantic = always flattering to please","Opposite = finding faults","Critical"],hint:"A sycophant always agrees and flatters. What is the opposite?"},
+  {type:"Verbal",subtype:"Analogies",question:"MENDACIOUS : TRUTH :: COWARDLY : ___",options:["A) Fear","B) Danger","C) Bravery","D) Weakness"],answer:2,explanation:"Mendacious opposes truth. Cowardly opposes bravery.",steps:["Mendacious = opposed to truth","Cowardly = opposed to ___","Bravery"],hint:"Mendacious is the opposite of truthful. What is cowardly the opposite of?"},
+  {type:"Verbal",subtype:"Synonyms",question:"EQUIVOCAL most nearly means:",options:["A) Clear","B) Ambiguous","C) Equal","D) Vocal"],answer:1,explanation:"Equivocal = open to multiple interpretations; ambiguous.",steps:["Equi = equal, voc = voice","Equal voices = unclear meaning","Ambiguous"],hint:"Equi=equal + voc=voice. Equal voices = unclear meaning."},
+  {type:"Verbal",subtype:"Analogies",question:"PEDANTIC : KNOWLEDGE :: SANCTIMONIOUS : ___",options:["A) Religion","B) Morality","C) Wisdom","D) Pride"],answer:1,explanation:"Pedantic = showing off knowledge. Sanctimonious = showing off morality.",steps:["Pedantic = ostentatiously displaying knowledge","Sanctimonious = ostentatiously displaying ___","Morality"],hint:"Pedantic = showing off knowledge. Sanctimonious = showing off what?"},
+  {type:"Verbal",subtype:"Antonyms",question:"LACONIC most nearly means the OPPOSITE of:",options:["A) Brief","B) Silent","C) Verbose","D) Curt"],answer:2,explanation:"Laconic = very few words. Verbose = too many words.",steps:["Laconic = brief and concise","Opposite = using many words","Verbose"],hint:"Laconic means very brief. What means excessively wordy?"},
+  {type:"Verbal",subtype:"Synonyms",question:"PERFIDIOUS most nearly means:",options:["A) Loyal","B) Perfect","C) Treacherous","D) Fearful"],answer:2,explanation:"Perfidious = guilty of betrayal; treacherous.",steps:["Perfidia = faithlessness","Perfidious = not faithful, betraying trust","Treacherous"],hint:"The root relates to breaking faith and trust."},
+  {type:"Verbal",subtype:"Analogies",question:"OBSEQUIOUS : SERVILE :: QUERULOUS : ___",options:["A) Happy","B) Complaining","C) Quiet","D) Curious"],answer:1,explanation:"Obsequious ≈ servile (synonyms). Querulous = habitually complaining.",steps:["Obsequious and servile are synonyms","Querulous = whiny, complaining","Synonym for querulous = complaining"],hint:"Obsequious ≈ servile. What is a synonym for querulous?"},
+  {type:"Verbal",subtype:"Antonyms",question:"INTREPID most nearly means the OPPOSITE of:",options:["A) Brave","B) Bold","C) Timid","D) Reckless"],answer:2,explanation:"Intrepid = fearlessly bold. Timid = lacking courage.",steps:["Intrepid = fearless","Opposite = fearful or lacking courage","Timid"],hint:"Intrepid means fearlessly bold. What means lacking courage?"},
+  {type:"Verbal",subtype:"Synonyms",question:"PELLUCID most nearly means:",options:["A) Colorful","B) Cloudy","C) Transparent","D) Polished"],answer:2,explanation:"Pellucid = translucently clear. Root: lucidus = light.",steps:["Per = through + lucidus = light","Light passes through = clear","Transparent"],hint:"The root 'lucid' means light or clear."},
+  {type:"Verbal",subtype:"Analogies",question:"PENURY : WEALTH :: IGNOMINY : ___",options:["A) Poverty","B) Shame","C) Glory","D) Knowledge"],answer:2,explanation:"Penury (poverty) opposes wealth. Ignominy (shame) opposes glory.",steps:["Penury = extreme poverty ↔ wealth","Ignominy = shame ↔ ___","Glory or honor"],hint:"Penury is the opposite of wealth. What is the opposite of ignominy?"},
+  {type:"Verbal",subtype:"Antonyms",question:"GARRULOUS most nearly means the OPPOSITE of:",options:["A) Talkative","B) Chatty","C) Reserved","D) Friendly"],answer:2,explanation:"Garrulous = extremely talkative. Reserved = not talkative.",steps:["Garrulous = talking too much","Opposite = not talkative","Reserved"],hint:"Garrulous means extremely talkative. What is the opposite?"},
+  {type:"Verbal",subtype:"Synonyms",question:"TRUCULENT most nearly means:",options:["A) Peaceful","B) Aggressive","C) Slow","D) Honest"],answer:1,explanation:"Truculent = eager to fight; aggressively defiant.",steps:["Root trux = fierce","Truculent = ready to fight","Aggressive"],hint:"Think of someone always looking for a fight."},
+  {type:"Verbal",subtype:"Analogies",question:"MISER : PRODIGAL :: ASCETIC : ___",options:["A) Religious","B) Poor","C) Hedonist","D) Monk"],answer:2,explanation:"Miser↔Prodigal are opposites. Ascetic↔Hedonist are opposites.",steps:["Miser saves ↔ Prodigal spends (opposites)","Ascetic denies pleasure ↔ ___ indulges","Hedonist = devoted to pleasure"],hint:"Miser and prodigal are opposites. What is the opposite of an ascetic?"},
+  {type:"Verbal",subtype:"Antonyms",question:"EPHEMERAL most nearly means the OPPOSITE of:",options:["A) Brief","B) Fleeting","C) Permanent","D) Temporary"],answer:2,explanation:"Ephemeral = very short-lived. Permanent = lasting forever.",steps:["Ephemeral = lasting a very short time","Opposite = lasting forever","Permanent"],hint:"Ephemeral means short-lived. What means lasting forever?"},
+  {type:"Verbal",subtype:"Synonyms",question:"NEFARIOUS most nearly means:",options:["A) Famous","B) Wicked","C) Nervous","D) Neutral"],answer:1,explanation:"Nefarious = wicked or criminal in nature.",steps:["Nefarious = beyond just bad — evil","Wicked = morally wrong, evil"],hint:"Think of a nefarious villain — what kind of person are they?"},
+  {type:"Verbal",subtype:"Antonyms",question:"SAGACIOUS most nearly means the OPPOSITE of:",options:["A) Wise","B) Clever","C) Foolish","D) Old"],answer:2,explanation:"Sagacious = shrewd and wise. Foolish = lacking judgment.",steps:["Sagacious = having wisdom and good judgment","Opposite = lacking wisdom","Foolish"],hint:"Sagacious means very wise. What means the opposite?"},
+  {type:"Verbal",subtype:"Analogies",question:"ACRIMONY : BITTERNESS :: EBULLIENCE : ___",options:["A) Sadness","B) Anger","C) Enthusiasm","D) Silence"],answer:2,explanation:"Acrimony and bitterness are synonyms. Ebullience and enthusiasm are synonyms.",steps:["Acrimony = bitterness (synonyms)","Ebullience = ___","Ebullience = lively enthusiasm"],hint:"Acrimony ≈ bitterness. What does ebullience mean?"},
+  {type:"Verbal",subtype:"Synonyms",question:"HAPLESS most nearly means:",options:["A) Lucky","B) Joyful","C) Unlucky","D) Careless"],answer:2,explanation:"Hapless = unfortunate, unlucky. 'Hap' = luck, '-less' = without.",steps:["Hap = luck","-less = without","Hapless = without luck = unlucky"],hint:"'Hap' means luck and '-less' means without."},
+  {type:"Verbal",subtype:"Antonyms",question:"LIMPID most nearly means the OPPOSITE of:",options:["A) Clear","B) Calm","C) Murky","D) Simple"],answer:2,explanation:"Limpid = clear and transparent. Murky = dark and cloudy.",steps:["Limpid = clear, transparent","Opposite = not clear, cloudy","Murky"],hint:"Limpid means crystal clear. What means dark and cloudy?"},
+]
+};
+
+// ── PRACTICE ENGINE ──
+function setMode(m, el) {
+  mode = m;
+  sessionQueue = [];
+  usedIndices = {};
+  document.querySelectorAll('#modePills .pill').forEach(p => p.classList.remove('active','gold'));
+  el.classList.add('active','gold');
+  document.getElementById('modeVal').textContent = m.charAt(0).toUpperCase()+m.slice(1);
+  loadQ();
+}
+function setDiff(d, el) {
+  diff = d;
+  sessionQueue = [];
+  usedIndices = {};
+  document.querySelectorAll('#diffPills .pill').forEach(p => p.classList.remove('active','gold'));
+  el.classList.add('active','gold');
+  loadQ();
+}
+
+// Queue system using local bank — no AI, no repeats
+let sessionQueue = [];
+let usedIndices = {};
+
+function getBankKey() {
+  if (mode === 'mixed') return null;
+  return mode + '_' + diff;
+}
+
+function refillSessionQueue() {
+  const keys = mode === 'mixed'
+    ? ['math_' + diff, 'verbal_' + diff]
+    : [getBankKey()];
+
+  let pool = [];
+  keys.forEach(k => {
+    const bank = QUESTION_BANK[k] || [];
+    bank.forEach((q, i) => {
+      const uid = k + '_' + i;
+      if (!usedIndices[uid]) pool.push({ q, uid });
+    });
+  });
+
+  // If we've used everything, reset and start over
+  if (pool.length === 0) {
+    usedIndices = {};
+    keys.forEach(k => {
+      const bank = QUESTION_BANK[k] || [];
+      bank.forEach((q, i) => pool.push({ q, uid: k + '_' + i }));
+    });
+  }
+
+  // Shuffle
+  pool.sort(() => Math.random() - 0.5);
+  sessionQueue = pool;
+}
+
+function loadQ() {
+  answered = false; stepsVisible = false;
+  document.getElementById('actRow').style.display = 'none';
+
+  if (sessionQueue.length === 0) refillSessionQueue();
+
+  const { q, uid } = sessionQueue.shift();
+  usedIndices[uid] = true;
+  currentQ = q;
+  renderQ();
+  if (timedMode) startQuestionTimer();
+}
+
+function renderQ() {
+  const q = currentQ, L = ['A','B','C','D'];
+  const opts = q.options.map((o,i) => `
+    <button class="opt" id="opt${i}" onclick="pick(${i})">
+      <span class="opt-l">${L[i]}</span>
+      <span>${o.replace(/^[A-D]\)\s*/,'')}</span>
+    </button>`).join('');
+  document.getElementById('qArea').innerHTML = `
+    <div class="q-card" id="qCard">
+      <div class="q-top">
+        <span class="q-tag">${q.subtype||q.type}</span>
+        <span class="q-num">Q${total+1} · ${diff.toUpperCase()}</span>
+      </div>
+      <div class="q-text">${q.question}</div>
+      <div class="opts">${opts}</div>
+      <div class="fb" id="fb"><div class="fb-title" id="fbTitle"></div><div id="fbBody"></div></div>
+      <div class="steps-box" id="stepsBox">
+        <h4>Step-by-Step Solution</h4>
+        <div id="stepsInner"></div>
+      </div>
+    </div>`;
+  updateStats();
+}
+
+function pick(i) {
+  if (answered) return;
+  answered = true; total++;
+  clearInterval(timerInterval);
+  const isOk = i !== -1 && i === currentQ.answer; // -1 = timed out
+  if (isOk) { correct++; streak++; } else { streak = 0; }
+  trackAnswer(currentQ.subtype || currentQ.type, isOk);
+
+  document.querySelectorAll('.opt').forEach((b, idx) => {
+    b.disabled = true;
+    if (idx===i && isOk) b.classList.add('ok');
+    else if (idx===i && !isOk) b.classList.add('bad');
+    else if (idx===currentQ.answer) b.classList.add('show-ok');
+  });
+
+  const fb = document.getElementById('fb');
+  fb.classList.add('show', isOk ? 'ok' : 'bad');
+  const timeoutMsg = i === -1 ? '⏱ Time\'s up! ' : '';
+  document.getElementById('fbTitle').textContent = isOk ? '✓ Correct!' : `✗ ${timeoutMsg}Incorrect`;
+  document.getElementById('fbBody').textContent = currentQ.explanation;
+  document.getElementById('qCard').classList.add(isOk ? 'ok' : 'bad');
+  document.getElementById('actRow').style.display = 'flex';
+  updateStats();
+}
+
+function toggleSteps() {
+  stepsVisible = !stepsVisible;
+  const box = document.getElementById('stepsBox');
+  const btn = document.getElementById('stepsBtn');
+  if (stepsVisible) {
+    box.classList.add('show');
+    btn.textContent = '📋 Hide Steps';
+    const steps = currentQ.steps || [];
+    document.getElementById('stepsInner').innerHTML = steps.map((s,i) =>
+      `<div class="step"><span class="step-n">${i+1}</span><span>${s}</span></div>`).join('');
+  } else {
+    box.classList.remove('show');
+    btn.textContent = '📋 Show Steps';
+  }
+}
+
+function showHint() {
+  if (!currentQ || answered) return;
+  const fb = document.getElementById('fb');
+  fb.classList.add('show','ok');
+  fb.style.background = 'rgba(167,139,250,0.08)';
+  fb.style.borderColor = 'rgba(167,139,250,0.25)';
+  fb.style.color = '#c4b5fd';
+  document.getElementById('fbTitle').textContent = '💡 Hint';
+  document.getElementById('fbBody').textContent = currentQ.hint;
+}
+
+function nextQ() { loadQ(); }
+
+function updateStats() {
+  document.getElementById('scoreVal').textContent = total > 0 ? Math.round(correct/total*100)+'%' : '—';
+  document.getElementById('streakVal').textContent = streak;
+  document.getElementById('doneVal').textContent = total;
+  document.getElementById('progBar').style.width = (total>0 ? Math.round(correct/total*100) : 0)+'%';
+}
+
+// ── LEARN ──
+const LESSONS = {
+  fractions: {
+    title: 'FRACTIONS & DECIMALS',
+    subtitle: 'The foundation of AFOQT arithmetic',
+    html: `
+      <div class="lesson-content">
+        <h3>What are fractions?</h3>
+        <p>A fraction represents a part of a whole. The <strong>numerator</strong> (top) tells how many parts you have. The <strong>denominator</strong> (bottom) tells how many equal parts the whole is divided into.</p>
+        <div class="formula-box">½ = 1 part out of 2 equal parts = 0.5
+¾ = 3 parts out of 4 equal parts = 0.75</div>
+
+        <h3>The 4 Operations</h3>
+        <p><strong>Adding & Subtracting:</strong> You MUST have the same denominator first.</p>
+        <div class="formula-box">1/3 + 1/4 → LCD is 12 → 4/12 + 3/12 = 7/12
+3/5 - 1/3 → LCD is 15 → 9/15 - 5/15 = 4/15</div>
+        <div class="example-box">
+          <div class="ex-label">Example</div>
+          <p>½ + ⅓ = ?</p>
+          <p>Step 1: Find LCD of 2 and 3 → LCD = 6</p>
+          <p>Step 2: Convert: ½ = 3/6, ⅓ = 2/6</p>
+          <p>Step 3: Add: 3/6 + 2/6 = 5/6 ✓</p>
+        </div>
+
+        <p><strong>Multiplying:</strong> Straight across — numerator × numerator, denominator × denominator.</p>
+        <div class="formula-box">2/3 × 4/5 = (2×4)/(3×5) = 8/15</div>
+
+        <p><strong>Dividing:</strong> Flip the second fraction (take its reciprocal), then multiply.</p>
+        <div class="formula-box">2/3 ÷ 4/5 = 2/3 × 5/4 = 10/12 = 5/6</div>
+
+        <h3>Converting Fractions ↔ Decimals</h3>
+        <div class="formula-box">Fraction → Decimal: divide numerator by denominator
+  ¾ = 3 ÷ 4 = 0.75
+
+Decimal → Fraction: use place value
+  0.6 = 6/10 = 3/5
+  0.75 = 75/100 = 3/4</div>
+        <div class="tip-callout"><strong>Memorize these:</strong> ½=0.5, ⅓≈0.333, ¼=0.25, ⅕=0.2, ⅛=0.125, ⅔≈0.667, ¾=0.75</div>
+      </div>`
+  },
+  percent: {
+    title: 'PERCENTAGES & RATIOS',
+    subtitle: 'Shows up on nearly every AFOQT math section',
+    html: `
+      <div class="lesson-content">
+        <h3>The 3 Percent Problem Types</h3>
+        <div class="formula-box">TYPE 1: "What is X% of Y?"
+  Answer = (X/100) × Y
+  Example: What is 30% of 80? → 0.30 × 80 = 24
+
+TYPE 2: "X is what % of Y?"
+  Answer = (X/Y) × 100
+  Example: 15 is what % of 60? → (15/60) × 100 = 25%
+
+TYPE 3: "X is Y% of what?"
+  Answer = X / (Y/100)
+  Example: 12 is 40% of what? → 12 / 0.40 = 30</div>
+
+        <h3>Percent Change</h3>
+        <div class="formula-box">% Change = (New - Old) / Old × 100
+% Increase: answer is positive
+% Decrease: answer is negative</div>
+        <div class="example-box">
+          <div class="ex-label">Example</div>
+          <p>A shirt costs $40, goes on sale for $28. What's the % decrease?</p>
+          <p>% Change = (28 - 40) / 40 × 100 = -12/40 × 100 = -30%</p>
+          <p>→ 30% decrease ✓</p>
+        </div>
+
+        <h3>Ratios & Proportions</h3>
+        <p>A ratio compares two quantities. Set up as a fraction and cross-multiply to solve.</p>
+        <div class="formula-box">If a/b = c/d, then a×d = b×c
+
+Example: A car travels 120 miles in 2 hours.
+How far in 5 hours?
+120/2 = x/5 → 2x = 600 → x = 300 miles</div>
+        <div class="tip-callout"><strong>Ratio word problems:</strong> If ratio is 3:5 and total is 40, find each part by dividing total by sum of ratio (3+5=8), then multiply: 3×5=15 and 5×5=25.</div>
+      </div>`
+  },
+  algebra: {
+    title: 'ALGEBRA FUNDAMENTALS',
+    subtitle: 'Solving for x — step by step',
+    html: `
+      <div class="lesson-content">
+        <h3>Solving Linear Equations</h3>
+        <p>Goal: get the variable alone on one side. Whatever you do to one side, do to the other.</p>
+        <div class="example-box">
+          <div class="ex-label">Example: Solve 3x + 7 = 22</div>
+          <p>Step 1: Subtract 7 from both sides → 3x = 15</p>
+          <p>Step 2: Divide both sides by 3 → x = 5 ✓</p>
+        </div>
+        <div class="example-box">
+          <div class="ex-label">Example: Solve 2(x-3) = 10</div>
+          <p>Step 1: Distribute → 2x - 6 = 10</p>
+          <p>Step 2: Add 6 → 2x = 16</p>
+          <p>Step 3: Divide by 2 → x = 8 ✓</p>
+        </div>
+
+        <h3>Exponent Rules</h3>
+        <div class="formula-box">x⁰ = 1 (anything to the zero power = 1)
+xᵃ × xᵇ = xᵃ⁺ᵇ    (same base: add exponents)
+xᵃ ÷ xᵇ = xᵃ⁻ᵇ    (same base: subtract exponents)
+(xᵃ)ᵇ  = xᵃᵇ      (power of power: multiply)
+x⁻ᵃ = 1/xᵃ        (negative exponent = flip)
+√x   = x^(1/2)</div>
+
+        <h3>Systems of Equations</h3>
+        <p>Two equations, two unknowns. Use substitution or elimination.</p>
+        <div class="example-box">
+          <div class="ex-label">Substitution method</div>
+          <p>x + y = 10 and x - y = 4</p>
+          <p>From eq 1: x = 10 - y</p>
+          <p>Substitute into eq 2: (10-y) - y = 4 → 10 - 2y = 4 → y = 3</p>
+          <p>Then x = 10 - 3 = 7 ✓</p>
+        </div>
+        <div class="tip-callout"><strong>Quadratic Formula:</strong> For ax²+bx+c=0 → x = (-b ± √(b²-4ac)) / 2a. If b²-4ac is negative, there are no real solutions.</div>
+      </div>`
+  },
+  geometry: {
+    title: 'GEOMETRY',
+    subtitle: 'Shapes, angles, area, volume',
+    html: `
+      <div class="lesson-content">
+        <h3>Angle Rules</h3>
+        <div class="formula-box">Straight line = 180°
+Full circle = 360°
+Triangle angles sum = 180°
+Quadrilateral angles sum = 360°
+Vertical angles are EQUAL
+Complementary angles sum to 90°
+Supplementary angles sum to 180°</div>
+
+        <h3>Triangles</h3>
+        <p><strong>Pythagorean Theorem</strong> (right triangles only): a² + b² = c² where c is the hypotenuse.</p>
+        <div class="formula-box">Common triples (memorize these!):
+  3-4-5    (and multiples: 6-8-10, 9-12-15)
+  5-12-13
+  8-15-17
+  7-24-25</div>
+        <div class="tip-callout"><strong>Special triangles:</strong> 45-45-90 has sides x : x : x√2. 30-60-90 has sides x : x√3 : 2x.</div>
+
+        <h3>Area & Perimeter</h3>
+        <div class="formula-box">Rectangle:  Area = lw,        Perimeter = 2(l+w)
+Triangle:   Area = ½bh,      Perimeter = a+b+c
+Circle:     Area = πr²,      Circumference = 2πr
+Trapezoid:  Area = ½(b₁+b₂)h</div>
+
+        <h3>Volume</h3>
+        <div class="formula-box">Box (rectangular prism): V = l × w × h
+Cube:      V = s³
+Cylinder:  V = πr²h
+Sphere:    V = 4/3 × π × r³
+Cone:      V = 1/3 × π × r² × h</div>
+      </div>`
+  },
+  wordprob: {
+    title: 'WORD PROBLEMS',
+    subtitle: 'The step-by-step attack method',
+    html: `
+      <div class="lesson-content">
+        <h3>The 5-Step Attack Method</h3>
+        <ol style="padding-left:20px;line-height:2.2;font-size:15px;color:#c8d5f0">
+          <li><strong style="color:var(--gold)">Read once</strong> — get the big picture</li>
+          <li><strong style="color:var(--gold)">Underline</strong> the question (what are they asking for?)</li>
+          <li><strong style="color:var(--gold)">Write down</strong> all known values with labels</li>
+          <li><strong style="color:var(--gold)">Choose a formula</strong> — rate×time=distance? part/whole? percent?</li>
+          <li><strong style="color:var(--gold)">Solve & sanity check</strong> — does the answer make sense?</li>
+        </ol>
+
+        <h3 style="margin-top:20px">Common Word Problem Types</h3>
+        <div class="example-box">
+          <div class="ex-label">Rate / Distance / Time</div>
+          <p>A plane flies 900 miles in 3 hours. What is its speed?</p>
+          <p>Formula: D = R × T → R = D/T = 900/3 = <strong>300 mph</strong></p>
+        </div>
+        <div class="example-box">
+          <div class="ex-label">Work Problems</div>
+          <p>Person A finishes a job in 3 hrs, Person B in 6 hrs. Together?</p>
+          <p>Combined rate = 1/3 + 1/6 = 2/6 + 1/6 = 3/6 = 1/2</p>
+          <p>Time = 1 ÷ (1/2) = <strong>2 hours</strong></p>
+        </div>
+        <div class="example-box">
+          <div class="ex-label">Mixture Problems</div>
+          <p>Mix 4L of 25% solution with 6L of 50% solution. What's the final %?</p>
+          <p>Total solute = 4×0.25 + 6×0.50 = 1 + 3 = 4L</p>
+          <p>Total volume = 10L → concentration = 4/10 = <strong>40%</strong></p>
+        </div>
+        <div class="tip-callout"><strong>Age problems:</strong> Always define a variable for the current age, then express others in terms of it. "In 5 years" = add 5. "5 years ago" = subtract 5.</div>
+      </div>`
+  },
+  vocab: {
+    title: 'VOCABULARY & WORD ROOTS',
+    subtitle: 'How to decode words you\'ve never seen',
+    html: `
+      <div class="lesson-content">
+        <h3>The Root Strategy</h3>
+        <p>Most English words come from Latin and Greek roots. If you know ~50 roots, you can decode thousands of unfamiliar words on test day.</p>
+        <div class="tip-callout"><strong>The method:</strong> Break the word into parts → identify any roots you know → build a definition → check against answer choices.</div>
+
+        <h3>Most Important Prefixes</h3>
+        <table class="cheat-table">
+          <tr><th>Prefix</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>a- / an-</td><td>without, not</td><td>amoral, anarchy</td></tr>
+          <tr><td>anti-</td><td>against</td><td>antiwar, antisocial</td></tr>
+          <tr><td>circum-</td><td>around</td><td>circumference, circumvent</td></tr>
+          <tr><td>contra-</td><td>against</td><td>contradict, contrary</td></tr>
+          <tr><td>de-</td><td>remove, reduce</td><td>deactivate, depreciate</td></tr>
+          <tr><td>equ- / equi-</td><td>equal</td><td>equate, equivocal</td></tr>
+          <tr><td>extra-</td><td>beyond</td><td>extraordinary, extravagant</td></tr>
+          <tr><td>hyper-</td><td>over, excessive</td><td>hyperactive, hyperbole</td></tr>
+          <tr><td>hypo-</td><td>under, less</td><td>hypothermia, hypocrisy</td></tr>
+          <tr><td>inter-</td><td>between</td><td>intercede, interrupt</td></tr>
+          <tr><td>intra-</td><td>within</td><td>intramural, intravenous</td></tr>
+          <tr><td>omni-</td><td>all</td><td>omnipotent, omniscient</td></tr>
+          <tr><td>per-</td><td>through, fully</td><td>persevere, permeate</td></tr>
+          <tr><td>re-</td><td>again, back</td><td>recur, revert</td></tr>
+          <tr><td>trans-</td><td>across</td><td>transport, transcend</td></tr>
+        </table>
+
+        <h3>Context Clue Strategy</h3>
+        <p>When you don't know a word, the sentence often tells you:</p>
+        <ul>
+          <li><strong>Contrast clue:</strong> "Although X was timid, his brother was ___" → opposite of timid</li>
+          <li><strong>Definition clue:</strong> "Sagacious, or wise in judgment" → directly defined</li>
+          <li><strong>Example clue:</strong> "Aquatic animals such as fish and dolphins" → water-related</li>
+          <li><strong>Tone clue:</strong> Does the sentence feel positive or negative? Match the tone.</li>
+        </ul>
+      </div>`
+  },
+  analogies: {
+    title: 'ANALOGIES STRATEGY',
+    subtitle: 'Crack any analogy with the bridge sentence method',
+    html: `
+      <div class="lesson-content">
+        <h3>The Bridge Sentence Method</h3>
+        <p>Never guess on analogies. Instead, build a precise bridge sentence that captures the relationship, then test each answer.</p>
+        <div class="formula-box">Step 1: Create a sentence: "A [STEM A] is [relationship] a [STEM B]"
+Step 2: Test ALL 4 answer choices with the EXACT same sentence
+Step 3: The one that fits perfectly = correct answer</div>
+
+        <div class="example-box">
+          <div class="ex-label">Example: SURGEON : SCALPEL</div>
+          <p>Bridge: "A surgeon uses a scalpel as their primary tool."</p>
+          <p>A) Chef : Kitchen → "A chef uses a kitchen" — kitchen is a location, not a tool ✗</p>
+          <p>B) Carpenter : Hammer → "A carpenter uses a hammer as their primary tool" ✓</p>
+          <p>C) Author : Book → "An author uses a book" — a book is the product, not the tool ✗</p>
+          <p>D) Pilot : Airplane → "A pilot uses an airplane" — uses it, but not really a tool ✗</p>
+          <p><strong>Answer: B</strong></p>
+        </div>
+
+        <h3>The 9 Relationship Types</h3>
+        <table class="cheat-table">
+          <tr><th>Type</th><th>Bridge</th><th>Example</th></tr>
+          <tr><td>Part → Whole</td><td>"___ is part of ___"</td><td>PETAL : FLOWER</td></tr>
+          <tr><td>Tool → User</td><td>"A ___ uses a ___"</td><td>BRUSH : PAINTER</td></tr>
+          <tr><td>Function</td><td>"A ___ is used to ___"</td><td>THERMOMETER : MEASURE</td></tr>
+          <tr><td>Cause → Effect</td><td>"___ causes ___"</td><td>DROUGHT : FAMINE</td></tr>
+          <tr><td>Degree</td><td>"___ is an extreme form of ___"</td><td>FURIOUS : ANGRY</td></tr>
+          <tr><td>Synonym</td><td>"___ means ___"</td><td>HAPPY : ELATED</td></tr>
+          <tr><td>Antonym</td><td>"___ is opposite of ___"</td><td>GENEROUS : STINGY</td></tr>
+          <tr><td>Member → Group</td><td>"Many ___ form a ___"</td><td>SOLDIER : BATTALION</td></tr>
+          <tr><td>Location</td><td>"___ lives/works in ___"</td><td>JUDGE : COURTROOM</td></tr>
+        </table>
+        <div class="tip-callout"><strong>Pro tip:</strong> If two answers both seem to fit, your bridge sentence is too vague. Make it MORE specific until only one fits.</div>
+      </div>`
+  },
+  reading: {
+    title: 'READING COMPREHENSION',
+    subtitle: 'Find answers fast — always in the passage',
+    html: `
+      <div class="lesson-content">
+        <h3>The Golden Rule</h3>
+        <div class="tip-callout"><strong>Every answer is IN the passage.</strong> You are never tested on outside knowledge. If you can't point to where in the passage the answer comes from, it's the wrong answer.</div>
+
+        <h3>Read Questions First</h3>
+        <p>Before reading the passage, scan the questions. This tells you what to look for. Underline key words in each question (names, dates, concepts).</p>
+
+        <h3>The 5 Question Types</h3>
+        <table class="cheat-table">
+          <tr><th>Type</th><th>What to look for</th><th>Tip</th></tr>
+          <tr><td>Main Idea</td><td>What's the whole passage about?</td><td>Look at first + last paragraph</td></tr>
+          <tr><td>Detail</td><td>Specific fact in the passage</td><td>Scan for keywords, find the line</td></tr>
+          <tr><td>Inference</td><td>What can we conclude?</td><td>Must be supported by the text</td></tr>
+          <tr><td>Tone/Attitude</td><td>How does the author feel?</td><td>Look for charged words (clearly, unfortunately, remarkably)</td></tr>
+          <tr><td>Vocabulary in context</td><td>What does this word mean HERE?</td><td>Re-read the surrounding sentences</td></tr>
+        </table>
+
+        <h3>Eliminating Wrong Answers</h3>
+        <ul>
+          <li><strong>Too extreme:</strong> "always," "never," "all," "none" — almost always wrong</li>
+          <li><strong>Out of scope:</strong> True in general, but not mentioned in the passage</li>
+          <li><strong>Opposite:</strong> Says the opposite of what the passage says</li>
+          <li><strong>Distractor detail:</strong> A real detail from the passage, but doesn't answer THIS question</li>
+        </ul>
+      </div>`
+  },
+  antonyms: {
+    title: 'SYNONYMS & ANTONYMS',
+    subtitle: 'The positive/negative trick + elimination',
+    html: `
+      <div class="lesson-content">
+        <h3>Step 1: Define the Word (or guess its tone)</h3>
+        <p>If you know the word: define it precisely before looking at answers. If you don't know it, ask yourself: does this word feel positive or negative from context or from recognizing any roots?</p>
+
+        <h3>Step 2: For Antonyms — Flip It</h3>
+        <div class="formula-box">AFOQT antonym questions ask for the OPPOSITE meaning.
+If the stem word is positive → look for a negative answer.
+If the stem word is negative → look for a positive answer.
+If it's about size → look for the opposite size.
+If it's about speed → opposite speed.</div>
+
+        <h3>Step 3: Eliminate</h3>
+        <ul>
+          <li>Cross out any answer that's clearly unrelated</li>
+          <li>Cross out any answer that's a synonym (not antonym)</li>
+          <li>Cross out any answer with the same tone</li>
+          <li>Between 2 remaining: pick the one more precisely opposite</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="ex-label">Example: LOQUACIOUS means the opposite of...</div>
+          <p>"Loqu" = speak. Loquacious = very talkative. Positive word (not bad, just a lot).</p>
+          <p>A) Verbose — means wordy = SYNONYM ✗</p>
+          <p>B) Taciturn — means quiet, reserved = ANTONYM ✓</p>
+          <p>C) Gregarious — means sociable = unrelated ✗</p>
+          <p>D) Candid — means honest = unrelated ✗</p>
+          <p><strong>Answer: B (Taciturn)</strong></p>
+        </div>
+        <div class="tip-callout"><strong>The root trick in reverse:</strong> If you see "mal-" in an answer and the stem is positive, that answer could be the antonym. If you see "bene-" and the stem is negative, same idea.</div>
+      </div>`
+  }
+};
+
+function openLesson(id) {
+  const lesson = LESSONS[id];
+  if (!lesson) return;
+  document.getElementById('learnMenu').style.display = 'none';
+  document.getElementById('aiTutorPanel').style.display = 'none';
+  document.getElementById('lessonPanel').style.display = 'block';
+  document.getElementById('lessonContent').innerHTML = `
+    <div class="lesson-title">${lesson.title}</div>
+    <div class="lesson-subtitle">${lesson.subtitle}</div>
+    ${lesson.html}
+    <div style="margin-top:24px">
+      <button class="btn btn-gold" onclick="showPage('practice')">Practice This Topic →</button>
+    </div>`;
+}
+
+function closeLesson() {
+  document.getElementById('lessonPanel').style.display = 'none';
+  document.getElementById('learnMenu').style.display = 'block';
+}
+
+// ── AI TUTOR API ──
+async function callAPI(messages, maxTokens=1500) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, messages })
+  });
+  return await res.json();
+}
+
+// AI TUTOR
+let aiSubject = 'math';
+function openAILesson(subject) {
+  // Require API key only for AI tutor
+  if (!apiKey) {
+    pendingAISubject = subject;
+    document.getElementById('apiGate').style.display = 'flex';
+    return;
+  }
+  aiSubject = subject;
+  document.getElementById('learnMenu').style.display = 'none';
+  document.getElementById('lessonPanel').style.display = 'none';
+  document.getElementById('aiTutorPanel').style.display = 'block';
+  document.getElementById('aiTutorTitle').textContent = subject === 'math' ? 'AI MATH TUTOR' : 'AI VERBAL TUTOR';
+  document.getElementById('aiQ').placeholder = subject === 'math'
+    ? 'e.g. How do I solve systems of equations? Explain the Pythagorean theorem.'
+    : 'e.g. What does "equivocal" mean? How do analogies work? Explain reading comprehension.';
+  document.getElementById('aiAnswer').style.display = 'none';
+  document.getElementById('aiQ').value = '';
+}
+
+function closeAILesson() {
+  document.getElementById('aiTutorPanel').style.display = 'none';
+  document.getElementById('learnMenu').style.display = 'block';
+}
+
+async function askAI() {
+  const q = document.getElementById('aiQ').value.trim();
+  if (!q) return;
+  const box = document.getElementById('aiAnswer');
+  box.style.display = 'block';
+  box.classList.add('loading-state');
+  box.innerHTML = `<div class="spin"></div><p style="color:var(--muted);margin-top:12px">Thinking…</p>`;
+
+  const prompt = `You are an expert AFOQT tutor helping a student who is starting from scratch. 
+The student asked: "${q}"
+This is about ${aiSubject === 'math' ? 'AFOQT Math / Arithmetic Reasoning' : 'AFOQT Verbal / Word Knowledge'}.
+
+Give a clear, encouraging explanation. Include:
+- A simple plain-English explanation
+- Step-by-step breakdown if it's a process
+- A concrete example
+- A memory tip or shortcut if applicable
+
+Format your response in clean HTML using <h3>, <p>, <ul>, <li>, <strong> tags. Be thorough but not overwhelming. Encourage the student.`;
+
+  try {
+    const data = await callAPI([{ role: 'user', content: prompt }], 1500);
+    const text = data.content.map(c => c.text||'').join('');
+    box.classList.remove('loading-state');
+    box.innerHTML = text;
+  } catch(e) {
+    box.classList.remove('loading-state');
+    box.innerHTML = `<p style="color:var(--red)">Error: ${e.message}</p>`;
+  }
+}
+
+// Enter key for AI tutor
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('apiGate').style.display = 'none';
+  document.getElementById('apiInput').addEventListener('keydown', e => { if(e.key==='Enter') saveKey(); });
+  loadQ();
+});
+window.addEventListener('load', () => {
+  document.getElementById('aiQ')?.addEventListener('keydown', e => { if(e.key==='Enter') askAI(); });
+});
+</script>
+</body>
+</html>
